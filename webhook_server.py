@@ -22,6 +22,7 @@ dp.include_router(start_router)
 dp.include_router(menu_router)
 dp.include_router(order_router)
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info('Starting up FastAPI service...')
@@ -30,17 +31,20 @@ async def lifespan(app: FastAPI):
         await init_db()
         await populate_db()
 
-        WEBHOOK_URL = f'{WEBHOOK_HOST}/webhook'
-        await bot.set_webhook(url=WEBHOOK_URL)
-        logger.info(f'Webhook started for {WEBHOOK_URL}')
+        if WEBHOOK_HOST.startswith('https://'):
+            WEBHOOK_URL = f'{WEBHOOK_HOST}/webhook'
+            await bot.set_webhook(url=WEBHOOK_URL)
+            logger.info(f'Webhook started for {WEBHOOK_URL}')
 
-        await bot.send_message(
-            chat_id=MANAGER_CHAT_ID,
-            text='✨ **WEBHOOK СЕРВИС ЗАПУЩЕН** ✨\nБот переключен на Webhooks.'
-        )
+            await bot.send_message(
+                chat_id=MANAGER_CHAT_ID,
+                text='✨ **WEBHOOK СЕРВИС ЗАПУЩЕН** ✨\nБот переключен на Webhooks.'
+            )
+        else:
+            logger.warning(f'Running locally or in dev mode. Skipping Telegram Webhook setup.')
 
     except Exception as e:
-        logging.error(f'FATAL ERROR during startup: {e}')
+        logger.error(f'FATAL ERROR during startup: {e}')
 
     yield
 
