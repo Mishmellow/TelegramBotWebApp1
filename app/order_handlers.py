@@ -3,11 +3,15 @@ from aiogram.exceptions import TelegramBadRequest
 from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
 
+import logging
+
 from app.keyboard import get_periphery_menu, PRODUCTS, get_cancel_keyboard, get_cart_keyboard
 from app.menu_callbacks import PeripheryCallback
 
 from settings import MANAGER_CHAT_ID
 from app.order_states import OrderStates
+
+logger = logging.getLogger(__name__)
 
 router = Router()
 
@@ -140,7 +144,7 @@ async def address_process(message: Message, state: FSMContext, bot: Bot):
             parse_mode='Markdown'
         )
     except TelegramBadRequest as e:
-        print(f'Ошибка Markdown при отправке менеджеру: {e}. Отправка как обычный текст.')
+        logging.error(f'Ошибка Markdown при отправке менеджеру: {e}. Отправка как обычный текст.')
 
         plain_text_message = manager_message.replace('**', '').replace('—', '-')
 
@@ -149,7 +153,7 @@ async def address_process(message: Message, state: FSMContext, bot: Bot):
             text=plain_text_message,
         )
     except Exception as e:
-        print(f'Критическая ошибка при отправке менеджеру: {e}')
+        logging.error(f'Критическая ошибка при отправке менеджеру: {e}')
 
     summary = (
         f"✅ Заказ оформлен!\n\n"
