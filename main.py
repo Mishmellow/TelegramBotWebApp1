@@ -1,29 +1,22 @@
 import asyncio
 from aiogram import Dispatcher, Bot
 import logging
-import os
-from dotenv import load_dotenv
 from database import init_db, populate_db
+
+from settings import MANAGER_CHAT_ID, BOT_TOKEN
 
 from app.start import router as start_router
 from app.menu_handlers import router as menu_router
 from app.order_handlers import router as order_router
 
-load_dotenv()
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 print('🟢 Запущено!')
 
-BOT_TOKEN = os.getenv('BOT_TOKEN')
-MANAGER_CHAT_ID = os.getenv('MANAGER_CHAT_ID')
 
 async def main():
     await init_db()
     await populate_db()
-
-    if not BOT_TOKEN:
-        print('🛑 Ошибка: BOT_TOKEN не найден в переменных окружения (.env)')
-        return
 
     bot = Bot(token=BOT_TOKEN)
 
