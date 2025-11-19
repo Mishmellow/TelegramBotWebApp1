@@ -26,6 +26,6 @@ async def start(message: Message, state: FSMContext, bot: Bot):
         reply_markup=inline_category_keyboard()
     )
 
-@router.message(Command('help'))
-async def help_message(message: Message):
-    await message.reply('How i can help you?')
+# @router.message(Command('help'))
+# async def help_message(message: Message):
+#     await message.reply('How i can help you?')
