@@ -6,16 +6,18 @@ from aiogram.filters import CommandStart, Command
 from aiogram import Router
 from aiogram.types import Message
 from app.keyboard import inline_category_keyboard
-
+from aiogram.fsm.context import FSMContext
 
 router = Router()
 
 
 @router.message(CommandStart())
-async def start(message: Message):
+async def start(message: Message, state: FSMContext):
     user_id = message.from_user.id
     user_fullname = message.from_user.full_name
     logging.info(f"Пользователь {user_id}\n Присоединился {user_fullname}")
+
+    await state.clear()
 
     await message.reply(f'Привет {user_fullname}\nТвой id: {user_id}\nЧем могу помочь?',
                         reply_markup=inline_category_keyboard())
