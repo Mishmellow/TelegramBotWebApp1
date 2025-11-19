@@ -5,7 +5,7 @@ from aiogram import Bot, Dispatcher
 from aiogram.types import Update
 from contextlib import asynccontextmanager
 
-from settings import BOT_TOKEN, MANAGER_CHAT_ID, WEBHOOK_HOST
+from settings import BOT_TOKEN, MANAGER_CHAT_ID, WEBHOOK_HOST, WEBHOOK_SECRET
 from database import init_db, populate_db
 
 from app.start import router as start_router
@@ -37,7 +37,7 @@ async def lifespan(app: FastAPI):
 
         if host_to_check.startswith('https://'):
             WEBHOOK_URL = f'{WEBHOOK_HOST}/webhook'
-            await bot.set_webhook(url=WEBHOOK_URL)
+            await bot.set_webhook(url=WEBHOOK_URL, secret_token=WEBHOOK_SECRET)
             logger.info(f'Webhook started for {WEBHOOK_URL}')
 
             await bot.send_message(
