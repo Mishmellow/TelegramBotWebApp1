@@ -1,7 +1,5 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton
 from app.menu_callbacks import PeripheryCallback
-from database import get_all_products
-
 
 def get_main_reply_keyboard() -> ReplyKeyboardMarkup:
 
@@ -36,6 +34,8 @@ PRODUCTS = {
 }
 
 async def get_periphery_menu() -> InlineKeyboardMarkup:
+
+    from database import get_all_products
 
     products = await get_all_products()
     buttons = []

@@ -15,7 +15,7 @@ from app.order_handlers import router as order_router
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-logger.error(f'DEBUG HOST VALUE: {WEBHOOK_HOST}')
+# logger.error(f'DEBUG HOST VALUE: {WEBHOOK_HOST}')
 
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
