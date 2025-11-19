@@ -33,7 +33,9 @@ async def lifespan(app: FastAPI):
         await init_db()
         await populate_db()
 
-        if WEBHOOK_HOST.startswith('https://'):
+        host_to_check = WEBHOOK_HOST or ''
+
+        if host_to_check.startswith('https://'):
             WEBHOOK_URL = f'{WEBHOOK_HOST}/webhook'
             await bot.set_webhook(url=WEBHOOK_URL)
             logger.info(f'Webhook started for {WEBHOOK_URL}')
