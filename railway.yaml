@@ -1,0 +1,2 @@
+environment:
+  WEBHOOK_HOST: "{{RAILWAY_STATIC_URL}}"
