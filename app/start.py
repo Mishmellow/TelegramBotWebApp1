@@ -2,7 +2,7 @@
 import logging
 
 # Другие импорты
-from aiogram.filters import CommandStart, Command
+from aiogram.filters import CommandStart
 from aiogram import Bot
 from aiogram import Router
 from aiogram.types import Message
@@ -21,11 +21,9 @@ async def start(message: Message, state: FSMContext, bot: Bot):
     await state.clear()
 
     await bot.send_message(
+        text=f"👋 Привет, {message.from_user.full_name}!\n"
+             "Я бот для приёма заказов.\n\n"
+             "Выберите категорию или используйте команду /help для справки.\n",
         chat_id=message.chat.id,
-        text=f'Привет {user_fullname}\nТвой id: {user_id}\nЧем могу помочь?',
         reply_markup=inline_category_keyboard()
     )
-
-# @router.message(Command('help'))
-# async def help_message(message: Message):
-#     await message.reply('How i can help you?')

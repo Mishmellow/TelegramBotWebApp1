@@ -1,4 +1,5 @@
 from aiogram import Router, F
+from aiogram.types import Message
 from aiogram.types import CallbackQuery
 from app.keyboard import inline_category_keyboard
 
@@ -13,3 +14,10 @@ async def about_button(callback: CallbackQuery):
 async def contact_button(callback: CallbackQuery):
     await callback.message.answer('Свяжитесь с нами через @ваш_менеджер или по почте ********.com',
                                   reply_markup=inline_category_keyboard())
+
+@router.message(F.text)
+async def handle_text_message(message: Message):
+    if message.text.startswith('/'):
+        return
+
+    await message.reply("Извините, я не понял вас. Попробуйте /start, чтобы начать заново.")
