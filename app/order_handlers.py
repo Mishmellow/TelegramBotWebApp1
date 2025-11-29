@@ -327,9 +327,9 @@ async def delete_item_from_cart(callback: CallbackQuery, state: FSMContext):
         total_price = sum(item['price'] for item in cart)
 
         cart_summary = (
-            "🛒 **СОДЕРЖИМОЕ ВАШЕЙ КОРЗИНЫ (Обновлено):**\n\n"
+            "🛒 СОДЕРЖИМОЕ ВАШЕЙ КОРЗИНЫ (Обновлено):\n\n"
             f"{order_details}\n\n"
-            f"💰 **ИТОГО:** {total_price} ₴"
+            f"💰 ИТОГО: {total_price} ₴"
         )
 
         await callback.message.edit_text(
