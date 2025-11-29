@@ -28,7 +28,8 @@ PAYMENT_DETAILS_TEXT = (
 async def start_order(callback: CallbackQuery):
     await callback.answer()
 
-    menu = get_periphery_menu()
+    # ИСПРАВЛЕНИЕ 1: Добавляем await
+    menu = await get_periphery_menu()
 
     await callback.message.edit_text(
         '🎮 Каталог игровой периферии:\nВыберите товар, чтобы добавить его в корзину.',
@@ -38,7 +39,8 @@ async def start_order(callback: CallbackQuery):
 
 @router.callback_query(F.data == 'show_categories')
 async def return_to_catalog(callback: CallbackQuery):
-    menu = get_periphery_menu()
+    # ИСПРАВЛЕНИЕ 2: Добавляем await
+    menu = await get_periphery_menu()
 
     await callback.message.edit_text(
         '🎮 Каталог периферии:',
@@ -75,7 +77,7 @@ async def handle_add_product(
     await state.update_data(cart=cart)
     await callback.answer(f'✅ Добавлено: {product_name}. В корзине {len(cart)} товаров.', show_alert=False)
 
-    update_menu = get_periphery_menu()
+    update_menu = await get_periphery_menu()
 
     await callback.message.edit_text(
         f'{product_name} добавлен.\nВ корзине: {len(cart)} товаров. Выберите еще или оформите заказ.',
@@ -130,7 +132,7 @@ async def delete_item_from_cart(callback: CallbackQuery, state: FSMContext):
         if not cart:
             await callback.message.edit_text(
                 '🛒 Ваша корзина теперь пуста.',
-                reply_markup=get_periphery_menu()
+                reply_markup=await get_periphery_menu()
             )
             return
 
@@ -161,9 +163,10 @@ async def start_checkout(callback: CallbackQuery, state: FSMContext):
     cart = data.get('cart', [])
 
     if not cart:
+        # ИСПРАВЛЕНИЕ 6: Добавляем await
         return await callback.message.edit_text(
             '❌ Ваша корзина пуста! Добавьте товар, чтобы оформить заказ.',
-            reply_markup=get_periphery_menu()
+            reply_markup=await get_periphery_menu()
         )
 
     await state.set_state(OrderStates.waiting_for_name)
@@ -365,7 +368,7 @@ async def cancel_order(callback: CallbackQuery, state: FSMContext):
 
     await state.clear()
 
-    menu = get_periphery_menu()
+    menu = await get_periphery_menu()
 
     try:
         await callback.message.edit_text(
