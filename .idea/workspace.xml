@@ -4,10 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="258eb6ac-1b6e-4b97-b41c-1ba8a1ab0556" name="Changes" comment="delete cmd /help">
+    <list default="true" id="258eb6ac-1b6e-4b97-b41c-1ba8a1ab0556" name="Changes" comment="Update start">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/menu_handlers.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/menu_handlers.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/start.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/start.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -205,7 +204,15 @@
       <option name="project" value="LOCAL" />
       <updated>1763579856678</updated>
     </task>
-    <option name="localTasksCounter" value="13" />
+    <task id="LOCAL-00013" summary="Update start">
+      <option name="closed" value="true" />
+      <created>1763927846867</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1763927846867</updated>
+    </task>
+    <option name="localTasksCounter" value="14" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -221,6 +228,7 @@
     <MESSAGE value="relocate get_all_products" />
     <MESSAGE value="Update start handler and push" />
     <MESSAGE value="delete cmd /help" />
-    <option name="LAST_COMMIT_MESSAGE" value="delete cmd /help" />
+    <MESSAGE value="Update start" />
+    <option name="LAST_COMMIT_MESSAGE" value="Update start" />
   </component>
 </project>
