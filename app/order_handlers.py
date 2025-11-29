@@ -28,7 +28,6 @@ PAYMENT_DETAILS_TEXT = (
 async def start_order(callback: CallbackQuery):
     await callback.answer()
 
-    # ИСПРАВЛЕНИЕ 1: Добавляем await
     menu = await get_periphery_menu()
 
     await callback.message.edit_text(
@@ -39,7 +38,6 @@ async def start_order(callback: CallbackQuery):
 
 @router.callback_query(F.data == 'show_categories')
 async def return_to_catalog(callback: CallbackQuery):
-    # ИСПРАВЛЕНИЕ 2: Добавляем await
     menu = await get_periphery_menu()
 
     await callback.message.edit_text(
@@ -163,7 +161,6 @@ async def start_checkout(callback: CallbackQuery, state: FSMContext):
     cart = data.get('cart', [])
 
     if not cart:
-        # ИСПРАВЛЕНИЕ 6: Добавляем await
         return await callback.message.edit_text(
             '❌ Ваша корзина пуста! Добавьте товар, чтобы оформить заказ.',
             reply_markup=await get_periphery_menu()
@@ -179,8 +176,11 @@ async def start_checkout(callback: CallbackQuery, state: FSMContext):
     )
 
 
-@router.message(OrderStates.waiting_for_name)
+@router.message(OrderStates.waiting_for_name, F.text, ~F.text.startswith('/'))
 async def proces_name(message: Message, state: FSMContext):
+    current_state = await state.get_state()
+    logger.info(f"proces_name called for user {message.from_user.id}. Current state: {current_state}. Text: '{message.text}'")
+
     name = message.text
     await state.update_data(name=name)
     await state.set_state(OrderStates.waiting_for_address)
@@ -192,8 +192,11 @@ async def proces_name(message: Message, state: FSMContext):
     )
 
 
-@router.message(OrderStates.waiting_for_address)
+@router.message(OrderStates.waiting_for_address, F.text, ~F.text.startswith('/'))
 async def address_process(message: Message, state: FSMContext, bot: Bot):
+    current_state = await state.get_state()
+    logger.info(f"address_process called for user {message.from_user.id}. Current state: {current_state}. Text: '{message.text}'")
+
     await state.update_data(address=message.text)
     data = await state.get_data()
 
