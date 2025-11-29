@@ -15,7 +15,6 @@ from app.order_handlers import router as order_router
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-# logger.error(f'DEBUG HOST VALUE: {WEBHOOK_HOST}')
 
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
@@ -56,20 +55,36 @@ async def lifespan(app: FastAPI):
     await bot.delete_webhook()
     logger.info(f'Webhook deleted')
 
+
 app = FastAPI(lifespan=lifespan)
+
 
 @app.post('/webhook')
 async def telegram_webhook(request: Request):
+    logger.info("RECEIVED POST REQUEST ON /webhook")
+
+    if WEBHOOK_SECRET and request.headers.get('X-Telegram-Bot-Api-Secret-Token') != WEBHOOK_SECRET:
+        logger.warning('Request rejected: Invalid Secret Token')
+        return {'ok': False, 'description': 'Invalid Secret Token'}
+
     update_json = await request.json()
 
-    update = Update.model_validate(update_json)
-    await dp.feed_update(bot, update)
+    logger.info(f"Update JSON keys: {update_json.keys()}")
+    # --------------------------------
+
+    try:
+        update = Update.model_validate(update_json)
+        await dp.feed_update(bot, update)
+    except Exception as e:
+        logger.error(f'Error processing update: {e}', exc_info=True)
 
     return {'ok': True}
+
 
 @app.get('/')
 async def health_check():
     return {'status": "ok", "message": "Bot server is running on Webhooks'}
+
 
 if __name__ == '__main__':
     uvicorn.run(app, host='0.0.0.0', port=8080)
