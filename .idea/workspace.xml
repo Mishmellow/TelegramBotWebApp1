@@ -4,7 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="258eb6ac-1b6e-4b97-b41c-1ba8a1ab0556" name="Changes" comment="Add new handler">
+    <list default="true" id="258eb6ac-1b6e-4b97-b41c-1ba8a1ab0556" name="Changes" comment="Add new order_handlers.py and new router">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/order_handlers.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/order_handlers.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -243,7 +244,15 @@
       <option name="project" value="LOCAL" />
       <updated>1764449977903</updated>
     </task>
-    <option name="localTasksCounter" value="18" />
+    <task id="LOCAL-00018" summary="Add new order_handlers.py and new router">
+      <option name="closed" value="true" />
+      <created>1764450172714</created>
+      <option name="number" value="00018" />
+      <option name="presentableId" value="LOCAL-00018" />
+      <option name="project" value="LOCAL" />
+      <updated>1764450172714</updated>
+    </task>
+    <option name="localTasksCounter" value="19" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -264,6 +273,7 @@
     <MESSAGE value="Update order_handlers.py and add new handlers for pay, and new information" />
     <MESSAGE value="Add new state" />
     <MESSAGE value="Add new handler" />
-    <option name="LAST_COMMIT_MESSAGE" value="Add new handler" />
+    <MESSAGE value="Add new order_handlers.py and new router" />
+    <option name="LAST_COMMIT_MESSAGE" value="Add new order_handlers.py and new router" />
   </component>
 </project>
