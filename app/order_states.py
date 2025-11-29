@@ -6,3 +6,4 @@ class OrderStates(StatesGroup):
     waiting_for_phone = State()
     waiting_for_information = State()
     confirm_order = State()
+    waiting_for_receipt = State()
