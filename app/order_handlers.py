@@ -189,7 +189,7 @@ async def process_receipt_photo(message: Message, state: FSMContext, bot: Bot):
     ])
 
     caption = (
-        f"🔔 **ПОЛУЧЕНА КВИТАНЦИЯ**\n"
+        f"🔔 ПОЛУЧЕНА КВИТАНЦИЯ\n"
         f"➖➖➖➖➖➖➖➖➖➖➖➖\n"
         f"👤 Клиент: <a href='tg://user?id={client_id}'>{user_name}</a> (@{message.from_user.username})\n"
         f"💳 Сумма заказа: **{total_price} ₴**\n"
@@ -344,14 +344,23 @@ async def delete_item_from_cart(callback: CallbackQuery, state: FSMContext):
 
 @router.callback_query(F.data == 'cancel_order', OrderStates.waiting_for_name)
 @router.callback_query(F.data == 'cancel_order', OrderStates.waiting_for_address)
-@router.callback_query(F.data == 'cancel_order', OrderStates.waiting_for_receipt)  # ДОБАВЛЕНО новое состояние
+@router.callback_query(F.data == 'cancel_order', OrderStates.waiting_for_receipt)
 async def cancel_order(callback: CallbackQuery, state: FSMContext):
+    await callback.answer('Заказ отменен. Возврат в меню.')
+
+    logger.info(f"User {callback.from_user.id} cancelled order from state {await state.get_state()}")
+
     await state.clear()
-    await callback.message.delete()
+
+    try:
+        await callback.message.delete()
+    except TelegramBadRequest as e:
+        logger.warning(f"Failed to delete message during cancel: {e}")
+        pass
 
     menu = await get_periphery_menu()
+
     await callback.message.answer(
-        '🚫 Оформление заказа отменено.',
+        '🚫 Оформление заказа отменено. Вы вернулись в главное меню.',
         reply_markup=menu
     )
-    await callback.answer()
