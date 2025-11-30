@@ -5,11 +5,11 @@ from aiogram.fsm.context import FSMContext
 
 import logging
 
-from app.keyboard import get_periphery_menu, PRODUCTS, get_cancel_keyboard, get_cart_keyboard
-from app.menu_callbacks import PeripheryCallback
+from app.keyboard import get_periphery_menu, PRODUCTS, get_cancel_keyboard, get_cart_keyboard, PeripheryCallback
+from app.order_states import OrderStates
+from app.keyboard import inline_category_keyboard
 
 from settings import MANAGER_CHAT_ID
-from app.order_states import OrderStates
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +28,15 @@ PAYMENT_DETAILS_TEXT = (
 async def start_order(callback: CallbackQuery):
     await callback.answer()
 
+    data = await callback.state.get_data()
+    cart_count = len(data.get('cart', []))
+
     menu = await get_periphery_menu()
+
+    for row in menu.inline_keyboard:
+        for button in row:
+            if button.callback_data == 'view_cart':
+                button.text = f'🛒 Корзина ({cart_count})'
 
     await callback.message.edit_text(
         '🎮 Каталог игровой периферии:\nВыберите товар, чтобы добавить его в корзину.',
@@ -36,15 +44,34 @@ async def start_order(callback: CallbackQuery):
     )
 
 
+@router.callback_query(F.data == 'back_to_main')
+async def back_to_main_menu(callback: CallbackQuery):
+    await callback.answer('Возврат в главное меню.')
+    await callback.message.edit_text(
+        '👋 Вы вернулись в главное меню.\n'
+        'Выберите действие или используйте команду /help для справки.',
+        reply_markup=inline_category_keyboard()
+    )
+
+
 @router.callback_query(F.data == 'show_categories')
 async def return_to_catalog(callback: CallbackQuery):
+    await callback.answer()
+
+    data = await callback.state.get_data()
+    cart_count = len(data.get('cart', []))
+
     menu = await get_periphery_menu()
+
+    for row in menu.inline_keyboard:
+        for button in row:
+            if button.callback_data == 'view_cart':
+                button.text = f'🛒 Корзина ({cart_count})'
 
     await callback.message.edit_text(
         '🎮 Каталог периферии:',
         reply_markup=menu
     )
-    await callback.answer()
 
 
 @router.callback_query(PeripheryCallback.filter(F.action == 'add'))
@@ -76,6 +103,11 @@ async def handle_add_product(
     await callback.answer(f'✅ Добавлено: {product_name}. В корзине {len(cart)} товаров.', show_alert=False)
 
     update_menu = await get_periphery_menu()
+
+    for row in update_menu.inline_keyboard:
+        for button in row:
+            if button.callback_data == 'view_cart':
+                button.text = f'🛒 Корзина ({len(cart)})'
 
     await callback.message.edit_text(
         f'{product_name} добавлен.\nВ корзине: {len(cart)} товаров. Выберите еще или оформите заказ.',
@@ -128,9 +160,15 @@ async def delete_item_from_cart(callback: CallbackQuery, state: FSMContext):
         await callback.answer(f'🗑️ Товар {deleted_item["name"]} удален из корзины.', show_alert=False)
 
         if not cart:
+            menu = await get_periphery_menu()
+            for row in menu.inline_keyboard:
+                for button in row:
+                    if button.callback_data == 'view_cart':
+                        button.text = f'🛒 Корзина (0)'
+
             await callback.message.edit_text(
                 '🛒 Ваша корзина теперь пуста.',
-                reply_markup=await get_periphery_menu()
+                reply_markup=menu
             )
             return
 
@@ -161,9 +199,15 @@ async def start_checkout(callback: CallbackQuery, state: FSMContext):
     cart = data.get('cart', [])
 
     if not cart:
+        menu = await get_periphery_menu()
+        for row in menu.inline_keyboard:
+            for button in row:
+                if button.callback_data == 'view_cart':
+                    button.text = f'🛒 Корзина (0)'
+
         return await callback.message.edit_text(
             '❌ Ваша корзина пуста! Добавьте товар, чтобы оформить заказ.',
-            reply_markup=await get_periphery_menu()
+            reply_markup=menu
         )
 
     await state.set_state(OrderStates.waiting_for_name)
@@ -179,7 +223,8 @@ async def start_checkout(callback: CallbackQuery, state: FSMContext):
 @router.message(OrderStates.waiting_for_name, F.text, ~F.text.startswith('/'))
 async def proces_name(message: Message, state: FSMContext):
     current_state = await state.get_state()
-    logger.info(f"proces_name called for user {message.from_user.id}. Current state: {current_state}. Text: '{message.text}'")
+    logger.info(
+        f"proces_name called for user {message.from_user.id}. Current state: {current_state}. Text: '{message.text}'")
 
     name = message.text
     await state.update_data(name=name)
@@ -195,7 +240,8 @@ async def proces_name(message: Message, state: FSMContext):
 @router.message(OrderStates.waiting_for_address, F.text, ~F.text.startswith('/'))
 async def address_process(message: Message, state: FSMContext, bot: Bot):
     current_state = await state.get_state()
-    logger.info(f"address_process called for user {message.from_user.id}. Current state: {current_state}. Text: '{message.text}'")
+    logger.info(
+        f"address_process called for user {message.from_user.id}. Current state: {current_state}. Text: '{message.text}'")
 
     await state.update_data(address=message.text)
     data = await state.get_data()
@@ -269,7 +315,7 @@ async def process_receipt_photo(message: Message, state: FSMContext, bot: Bot):
     caption = (
         f"<b>🔔 ПОЛУЧЕНА КВИТАНЦИЯ</b>\n"
         f"➖➖➖➖➖➖➖➖➖➖➖➖\n"
-        f"👤 Клиент: <a href='tg://user?id={client_id}'>{user_name}</a> (@{username})\n"  
+        f"👤 Клиент: <a href='tg://user?id={client_id}'>{user_name}</a> (@{username})\n"
         f"💳 Сумма заказа: <b>{total_price} ₴</b>\n"
         f"ID Чата: <code>{client_id}</code>\n\n"
         f"Проверьте квитанцию и примите решение:"
@@ -371,7 +417,7 @@ async def cancel_order(callback: CallbackQuery, state: FSMContext):
 
     await state.clear()
 
-    menu = await get_periphery_menu()
+    menu = inline_category_keyboard()
 
     try:
         await callback.message.edit_text(

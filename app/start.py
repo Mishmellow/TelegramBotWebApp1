@@ -1,16 +1,13 @@
-# Более значимые ипорты:
+from aiogram import Router
+from aiogram.filters import CommandStart
+from aiogram.types import Message
+from aiogram.fsm.context import FSMContext
+from aiogram import Bot
 import logging
 
-# Другие импорты
-from aiogram.filters import CommandStart
-from aiogram import Bot
-from aiogram import Router
-from aiogram.types import Message
 from app.keyboard import inline_category_keyboard
-from aiogram.fsm.context import FSMContext
 
 router = Router()
-
 
 @router.message(CommandStart())
 async def start(message: Message, state: FSMContext, bot: Bot):
@@ -23,7 +20,7 @@ async def start(message: Message, state: FSMContext, bot: Bot):
     await bot.send_message(
         text=f"👋 Привет, {message.from_user.full_name}!\n"
              "Я бот для приёма заказов.\n\n"
-             "Выберите категорию или используйте команду /help для справки.\n",
+             "Выберите действие или используйте команду /help для справки.\n",
         chat_id=message.chat.id,
         reply_markup=inline_category_keyboard()
     )
