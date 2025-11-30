@@ -4,12 +4,20 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Optional
 
+from starlette.concurrency import run_in_threadpool
+
 
 class Product(BaseModel):
     id: Optional[int] = None
     name: str
     type: str
     price: float
+    description: Optional[str] = None
+
+
+class WebAppCart(BaseModel):
+    tg_user_id: int
+    items: List[Product]
 
 
 app = FastAPI(
@@ -29,10 +37,14 @@ app.add_middleware(
 )
 
 PRODUCTS_DB = [
-    {"id": 201, "name": "Razer DeathAdder V3", "type": "Мышь", "price": 8990.0},
-    {"id": 202, "name": "Logitech G Pro X", "type": "Клавиатура", "price": 14500.0},
-    {"id": 203, "name": "HyperX Cloud Alpha", "type": "Гарнитура", "price": 7200.0},
-    {"id": 204, "name": "SteelSeries Apex Pro", "type": "Клавиатура", "price": 19990.0},
+    {"id": 201, "name": "Razer DeathAdder V3", "type": "Мышь", "price": 8990.0,
+     "description": "Эргономичная игровая мышь с оптическим сенсором."},
+    {"id": 202, "name": "Logitech G Pro X", "type": "Клавиатура", "price": 14500.0,
+     "description": "Механическая клавиатура с заменяемыми свитчами."},
+    {"id": 203, "name": "HyperX Cloud Alpha", "type": "Гарнитура", "price": 7200.0,
+     "description": "Игровая гарнитура с двойными камерами для чистого звука."},
+    {"id": 204, "name": "SteelSeries Apex Pro", "type": "Клавиатура", "price": 19990.0,
+     "description": "Клавиатура с настраиваемыми механическими переключателями OmniPoint."},
 ]
 
 last_id = max(p['id'] for p in PRODUCTS_DB) if PRODUCTS_DB else 200
@@ -44,15 +56,20 @@ def get_next_id():
     return last_id
 
 
-
-@app.get("/products", response_model=List[Product], summary='Получить весь каталог товаров')
-def get_all_products():
+def _get_all_products_sync():
     return PRODUCTS_DB
 
 
+@app.get("/products", response_model=List[Product], summary='Получить весь каталог товаров')
+async def get_all_products():
+    return await run_in_threadpool(_get_all_products_sync)
+
+
 @app.get('/products/{product_id}', response_model=Product, summary="Получить товар по ID")
-def get_product_by_id(product_id: int):
-    product = next((p for p in PRODUCTS_DB if p['id'] == product_id), None)
+async def get_product_by_id(product_id: int):
+    product = await run_in_threadpool(
+        lambda: next((p for p in PRODUCTS_DB if p['id'] == product_id), None)
+    )
 
     if product is None:
         raise HTTPException(status_code=404, detail='Товар не найден')
@@ -62,16 +79,16 @@ def get_product_by_id(product_id: int):
 
 @app.get('/products/type/{product_type}', response_model=List[Product],
          summary="Получить товары по типу (не используется фронтендом)")
-def get_products_by_type(product_type: str):
-    filtered_products = [
-        p for p in PRODUCTS_DB if p['type'].lower() == product_type.lower()
-    ]
+async def get_products_by_type(product_type: str):
+    filtered_products = await run_in_threadpool(
+        lambda: [p for p in PRODUCTS_DB if p['type'].lower() == product_type.lower()]
+    )
 
     return filtered_products
 
 
 @app.post("/products", response_model=Product, status_code=201, summary='Добавить новый товар')
-def create_product(product: Product):
+async def create_product(product: Product):
     new_id = get_next_id()
     new_product = product.model_dump()
     new_product['id'] = new_id
@@ -80,18 +97,26 @@ def create_product(product: Product):
 
 
 @app.delete("/products/{product_id}", status_code=204, summary='Удалить товар по ID')
-def delete_product(product_id: int):
+async def delete_product(product_id: int):
     global PRODUCTS_DB
 
-    index_to_delete = -1
-    for i, p in enumerate(PRODUCTS_DB):
-        if p['id'] == product_id:
-            index_to_delete = i
-            break
+    def delete_sync():
+        global PRODUCTS_DB
+        index_to_delete = -1
+        for i, p in enumerate(PRODUCTS_DB):
+            if p['id'] == product_id:
+                index_to_delete = i
+                break
 
-    if index_to_delete == -1:
+        if index_to_delete == -1:
+            return False
+
+        PRODUCTS_DB.pop(index_to_delete)
+        return True
+
+    deleted = await run_in_threadpool(delete_sync)
+
+    if not deleted:
         raise HTTPException(status_code=404, detail=f'Товар с ID {product_id} не найден')
 
-    # Удаляем товар из списка
-    PRODUCTS_DB.pop(index_to_delete)
-    return  # Возвращаем 204 No Content
+    return

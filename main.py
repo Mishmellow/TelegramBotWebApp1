@@ -20,7 +20,6 @@ async def on_startup(bot: Bot):
         text="✨СЕРВИС ЗАПУЩЕН ✨\nБот вышел в онлайн и готов к работе."
     )
 
-
 async def main():
     await init_db()
     await populate_db()
