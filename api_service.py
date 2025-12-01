@@ -73,7 +73,7 @@ PRODUCTS_DB = [
         "description": "Клавиатура с настраиваемыми механическими переключателями OmniPoint.",
         "image_url": "https://placehold.co/400x200/4F46E5/FFFFFF?text=Apex+Pro"
     },
-    # New products(6 pieces)
+    # АКСЕССУАРЫ / АУДИО (5-10)/ NEW PRODUCTS (5-10)
     {
         "id": 205,
         "name": "Logitech G502 Hero",
@@ -128,6 +128,97 @@ PRODUCTS_DB = [
         "description": "Беспроводной геймпад с тактильной отдачей и адаптивными триггерами.",
         "image_url": "https://placehold.co/400x200/4F46E5/FFFFFF?text=DualSense"
     },
+    # НОВЫЕ ТОВАРЫ (11-20)/ NEW PRODUCTS (11-20)
+    {
+        "id": 211,
+        "name": "BenQ ZOWIE XL2546K",
+        "type": "Монитор",
+        "category": "Дисплеи",
+        "price": 28000.0,
+        "description": "Игровой монитор 24.5 дюйма, 240 Гц, DyAc+ технология.",
+        "image_url": "https://placehold.co/400x200/4F46E5/FFFFFF?text=ZOWIE+XL2546K"
+    },
+    {
+        "id": 212,
+        "name": "Razer BlackShark V2 Pro",
+        "type": "Гарнитура",
+        "category": "Аудио",
+        "price": 14990.0,
+        "description": "Беспроводная киберспортивная гарнитура с технологией HyperSpeed.",
+        "image_url": "https://placehold.co/400x200/4F46E5/FFFFFF?text=BlackShark+V2+Pro"
+    },
+    {
+        "id": 213,
+        "name": "Apple AirPods Pro 2",
+        "type": "Наушники",
+        "category": "Аудио",
+        "price": 9500.0,
+        "description": "Беспроводные наушники с активным шумоподавлением и Spatial Audio.",
+        "image_url": "https://placehold.co/400x200/4F46E5/FFFFFF?text=AirPods+Pro+2"
+    },
+    {
+        "id": 214,
+        "name": "Logitech C920 HD Pro",
+        "type": "Веб-камера",
+        "category": "Стрим",
+        "price": 3800.0,
+        "description": "Веб-камера с разрешением 1080p, автофокусом и стереозвуком.",
+        "image_url": "https://placehold.co/400x200/4F46E5/FFFFFF?text=Logi+C920"
+    },
+    {
+        "id": 215,
+        "name": "Glorious Model O Wireless",
+        "type": "Мышь",
+        "category": "Периферия",
+        "price": 7990.0,
+        "description": "Сверхлегкая беспроводная мышь с сотовой конструкцией.",
+        "image_url": "https://placehold.co/400x200/4F46E5/FFFFFF?text=Model+O+Wireless"
+    },
+    {
+        "id": 216,
+        "name": "IKEA MARKUS (Кресло)",
+        "type": "Мебель",
+        "category": "Прочее",
+        "price": 12500.0,
+        "description": "Удобное рабочее/игровое кресло с высокой спинкой.",
+        "image_url": "https://placehold.co/400x200/4F46E5/FFFFFF?text=MARKUS+Chair"
+    },
+    {
+        "id": 217,
+        "name": "HyperX Alloy Origins",
+        "type": "Клавиатура",
+        "category": "Периферия",
+        "price": 9990.0,
+        "description": "Компактная механическая клавиатура с переключателями HyperX Red.",
+        "image_url": "https://placehold.co/400x200/4F46E5/FFFFFF?text=Alloy+Origins"
+    },
+    {
+        "id": 218,
+        "name": "Logitech G Astro A40",
+        "type": "Гарнитура",
+        "category": "Аудио",
+        "price": 16990.0,
+        "description": "Проводная гарнитура с MixAmp для профессионального звука.",
+        "image_url": "https://placehold.co/400x200/4F46E5/FFFFFF?text=Astro+A40"
+    },
+    {
+        "id": 219,
+        "name": "Samsung T7 Portable SSD 1TB",
+        "type": "Накопитель",
+        "category": "Аксессуары",
+        "price": 6500.0,
+        "description": "Внешний SSD диск на 1 ТБ, скорость до 1050 МБ/с.",
+        "image_url": "https://placehold.co/400x200/4F46E5/FFFFFF?text=T7+SSD"
+    },
+    {
+        "id": 220,
+        "name": "Logitech StreamCam",
+        "type": "Веб-камера",
+        "category": "Стрим",
+        "price": 7990.0,
+        "description": "Камера Full HD для вертикального и горизонтального стриминга.",
+        "image_url": "https://placehold.co/400x200/4F46E5/FFFFFF?text=StreamCam"
+    }
 ]
 
 last_id = max(p['id'] for p in PRODUCTS_DB) if PRODUCTS_DB else 200
