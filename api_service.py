@@ -37,14 +37,97 @@ app.add_middleware(
 )
 
 PRODUCTS_DB = [
-    {"id": 201, "name": "Razer DeathAdder V3", "type": "Мышь", "price": 8990.0,
-     "description": "Эргономичная игровая мышь с оптическим сенсором."},
-    {"id": 202, "name": "Logitech G Pro X", "type": "Клавиатура", "price": 14500.0,
-     "description": "Механическая клавиатура с заменяемыми свитчами."},
-    {"id": 203, "name": "HyperX Cloud Alpha", "type": "Гарнитура", "price": 7200.0,
-     "description": "Игровая гарнитура с двойными камерами для чистого звука."},
-    {"id": 204, "name": "SteelSeries Apex Pro", "type": "Клавиатура", "price": 19990.0,
-     "description": "Клавиатура с настраиваемыми механическими переключателями OmniPoint."},
+{
+        "id": 201,
+        "name": "Razer DeathAdder V3",
+        "type": "Мышь",
+        "category": "Периферия",
+        "price": 8990.0,
+        "description": "Эргономичная игровая мышь с оптическим сенсором 30K DPI.",
+        "image_url": "https://placehold.co/400x200/4F46E5/FFFFFF?text=DeathAdder"
+    },
+    {
+        "id": 202,
+        "name": "Logitech G Pro X",
+        "type": "Клавиатура",
+        "category": "Периферия",
+        "price": 14500.0,
+        "description": "Механическая клавиатура TKL с заменяемыми свитчами GX Blue.",
+        "image_url": "https://placehold.co/400x200/4F46E5/FFFFFF?text=G+Pro+X+Keyboard"
+    },
+    {
+        "id": 203,
+        "name": "HyperX Cloud Alpha",
+        "type": "Гарнитура",
+        "category": "Аудио",
+        "price": 7200.0,
+        "description": "Игровая гарнитура с двойными камерами для чистого звука и микрофоном.",
+        "image_url": "https://placehold.co/400x200/4F46E5/FFFFFF?text=Cloud+Alpha"
+    },
+    {
+        "id": 204,
+        "name": "SteelSeries Apex Pro",
+        "type": "Клавиатура",
+        "category": "Периферия",
+        "price": 19990.0,
+        "description": "Клавиатура с настраиваемыми механическими переключателями OmniPoint.",
+        "image_url": "https://placehold.co/400x200/4F46E5/FFFFFF?text=Apex+Pro"
+    },
+    # New products(6 pieces)
+    {
+        "id": 205,
+        "name": "Logitech G502 Hero",
+        "type": "Мышь",
+        "category": "Периферия",
+        "price": 3500.0,
+        "description": "Классическая мышь с 11 программируемыми кнопками и регулировкой веса.",
+        "image_url": "https://placehold.co/400x200/4F46E5/FFFFFF?text=G502+Hero"
+    },
+    {
+        "id": 206,
+        "name": "Samsung Odyssey G7",
+        "type": "Монитор",
+        "category": "Дисплеи",
+        "price": 25500.0,
+        "description": "Изогнутый игровой монитор 27 дюймов, 240 Гц, 1 мс.",
+        "image_url": "https://placehold.co/400x200/4F46E5/FFFFFF?text=Odyssey+G7"
+    },
+    {
+        "id": 207,
+        "name": "Blue Yeti X",
+        "type": "Микрофон",
+        "category": "Аудио",
+        "price": 11000.0,
+        "description": "Профессиональный USB-микрофон с четырьмя режимами записи.",
+        "image_url": "https://placehold.co/400x200/4F46E5/FFFFFF?text=Blue+Yeti+X"
+    },
+    {
+        "id": 208,
+        "name": "SteelSeries QcK Edge",
+        "type": "Коврик",
+        "category": "Аксессуары",
+        "price": 950.0,
+        "description": "Игровой коврик для мыши, края прошиты, XL размер.",
+        "image_url": "https://placehold.co/400x200/4F46E5/FFFFFF?text=QcK+Edge"
+    },
+    {
+        "id": 209,
+        "name": "Elgato Stream Deck Mini",
+        "type": "Контроллер",
+        "category": "Стрим",
+        "price": 5800.0,
+        "description": "Мини-контроллер с 6 программируемыми LCD-клавишами для стриминга.",
+        "image_url": "https://placehold.co/400x200/4F46E5/FFFFFF?text=Stream+Deck+Mini"
+    },
+    {
+        "id": 210,
+        "name": "Sony PlayStation 5 DualSense",
+        "type": "Геймпад",
+        "category": "Контроллеры",
+        "price": 2990.0,
+        "description": "Беспроводной геймпад с тактильной отдачей и адаптивными триггерами.",
+        "image_url": "https://placehold.co/400x200/4F46E5/FFFFFF?text=DualSense"
+    },
 ]
 
 last_id = max(p['id'] for p in PRODUCTS_DB) if PRODUCTS_DB else 200
