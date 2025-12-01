@@ -1,4 +1,4 @@
-# Запускать: uvicorn api_service:app --reload
+# Запускать: uvicorn api_service:app --reload/ uvicorn api_service:app --reload --port 8000
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -14,10 +14,13 @@ class Product(BaseModel):
     price: float
     description: Optional[str] = None
 
+class CartItem(BaseModel):
+    id: int
+    quantity: int
 
-class WebAppCart(BaseModel):
+class CartPayload(BaseModel):
     tg_user_id: int
-    items: List[Product]
+    items: List[CartItem]
 
 
 app = FastAPI(
@@ -294,3 +297,32 @@ async def delete_product(product_id: int):
         raise HTTPException(status_code=404, detail=f'Товар с ID {product_id} не найден')
 
     return
+
+
+@app.post("/web-app/send-cart", summary="Обработка заказа от Telegram Web App")
+async def send_cart_to_bot(payload: CartPayload):
+
+    print("-" * 50)
+    print(f"✅ ПОЛУЧЕН ЗАКАЗ ОТ ПОЛЬЗОВАТЕЛЯ TG ID: {payload.tg_user_id}")
+    print(f"🛒 Товаров в корзине: {len(payload.items)}")
+
+    total_cost = 0
+
+    def calculate_cost_sync():
+        nonlocal total_cost
+        for item in payload.items:
+            product_info = next((p for p in PRODUCTS_DB if p["id"] == item.id), None)
+
+            if product_info:
+                item_cost = product_info.get("price", 0.0) * item.quantity
+                total_cost += item_cost
+                print(f"   - {product_info['name']} (x{item.quantity}): {item_cost:.2f} ₴")
+            else:
+                print(f"   - Товар ID {item.id} не найден.")
+
+    await run_in_threadpool(calculate_cost_sync)
+
+    print(f"💰 ОБЩАЯ СУММА ЗАКАЗА: {total_cost:.2f} ₴")
+    print("-" * 50)
+
+    return {"status": "success", "message": "Cart received and processed (simulated)."}
