@@ -4,6 +4,7 @@ from fastapi import FastAPI, Request
 from aiogram import Bot, Dispatcher
 from aiogram.types import Update
 from contextlib import asynccontextmanager
+from fastapi.staticfiles import StaticFiles
 
 from settings import BOT_TOKEN, MANAGER_CHAT_ID, WEBHOOK_HOST, WEBHOOK_SECRET
 from database import init_db, populate_db
@@ -11,6 +12,8 @@ from database import init_db, populate_db
 from app.start import router as start_router
 from app.menu_handlers import router as menu_router
 from app.order_handlers import router as order_router
+
+from api_service import app as api_router
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -57,6 +60,15 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
+
+app.include_router(api_router)
+
+
+app.mount(
+    "/webapp",
+    StaticFiles(directory="docs", html=True),
+    name="webapp_static"
+)
 
 
 @app.post('/webhook')
