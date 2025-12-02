@@ -1,4 +1,3 @@
-import os
 import asyncio
 from aiogram import Bot, Dispatcher, types
 from aiogram.enums import ParseMode
@@ -8,9 +7,7 @@ from aiogram.types.web_app_info import WebAppInfo
 
 from settings import BOT_TOKEN
 
-bot_token = BOT_TOKEN
-
-WEB_APP_URL = "http://127.0.0.1:8000/webapp.html"
+WEB_APP_URL = "https://telegrambotwebapp1-production.up.railway.app/webapp.html"
 
 
 def get_web_app_keyboard() -> types.InlineKeyboardMarkup:
@@ -27,7 +24,6 @@ def get_web_app_keyboard() -> types.InlineKeyboardMarkup:
     return builder.as_markup()
 
 
-@asyncio.coroutine
 async def start_handler(message: types.Message):
 
     markup = get_web_app_keyboard()
@@ -44,14 +40,13 @@ async def start_handler(message: types.Message):
     )
 
 
-
 async def main():
 
-    if bot_token == BOT_TOKEN:
-        print("🛑 ОШИБКА: Пожалуйста, замени токен бота на реальный токен бота.")
+    if not BOT_TOKEN:
+        print("🛑 ОШИБКА: Токен BOT_TOKEN не найден в переменных окружения. Проверьте файл .env.")
         return
 
-    bot = Bot(token=bot_token, parse_mode=ParseMode.HTML)
+    bot = Bot(token=BOT_TOKEN, parse_mode=ParseMode.HTML)
     dp = Dispatcher()
 
     dp.message.register(start_handler, CommandStart())
