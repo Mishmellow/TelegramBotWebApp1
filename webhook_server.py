@@ -13,7 +13,7 @@ from app.start import router as start_router
 from app.menu_handlers import router as menu_router
 from app.order_handlers import router as order_router
 
-from api_service import app as api_router
+from api_service import router as api_router
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -95,7 +95,7 @@ async def telegram_webhook(request: Request):
 
 @app.get('/')
 async def health_check():
-    return {'status": "ok", "message": "Bot server is running on Webhooks'}
+    return {"status": "ok", "message": "Bot server is running on Webhooks"}
 
 
 if __name__ == '__main__':
