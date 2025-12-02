@@ -1,6 +1,7 @@
 # Запускать: uvicorn api_service:app --reload/ uvicorn api_service:app --reload --port 8000
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from typing import List, Optional
 
@@ -38,6 +39,13 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.get("/webapp.html", summary="Отдать HTML-файл для Telegram Web App")
+async def get_web_app():
+    # Файл index.html лежит в папке docs.
+    return FileResponse("docs/index.html")
+# --------------------------------------------------
+
 
 PRODUCTS_DB = [
 {

@@ -4,6 +4,7 @@ from aiogram.enums import ParseMode
 from aiogram.filters import CommandStart
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.types.web_app_info import WebAppInfo
+from aiogram.client.default import DefaultBotProperties
 
 from settings import BOT_TOKEN
 
@@ -46,10 +47,12 @@ async def main():
         print("🛑 ОШИБКА: Токен BOT_TOKEN не найден в переменных окружения. Проверьте файл .env.")
         return
 
-    bot = Bot(token=BOT_TOKEN, parse_mode=ParseMode.HTML)
+    bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
     dp = Dispatcher()
 
     dp.message.register(start_handler, CommandStart())
+
+    await bot.delete_webhook(drop_pending_updates=True)
 
     print("🚀 Бот запущен! Ищи его в Telegram...")
     try:
