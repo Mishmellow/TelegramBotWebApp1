@@ -25,10 +25,10 @@ PAYMENT_DETAILS_TEXT = (
 
 
 @router.callback_query(F.data == 'buy_button')
-async def start_order(callback: CallbackQuery):
+async def start_order(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
 
-    data = await callback.state.get_data()
+    data = await state.get_data()
     cart_count = len(data.get('cart', []))
 
     menu = await get_periphery_menu()
@@ -55,10 +55,10 @@ async def back_to_main_menu(callback: CallbackQuery):
 
 
 @router.callback_query(F.data == 'show_categories')
-async def return_to_catalog(callback: CallbackQuery):
+async def return_to_catalog(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
 
-    data = await callback.state.get_data()
+    data = await state.get_data()
     cart_count = len(data.get('cart', []))
 
     menu = await get_periphery_menu()
@@ -332,7 +332,8 @@ async def process_receipt_photo(message: Message, state: FSMContext, bot: Bot):
 
         await message.answer(
             "📄 <b>Квитанция получена!</b>\n"
-            "Менеджер проверяет ваш платеж. Мы сообщим вам о результате."
+            "Менеджер проверяет ваш платеж. Мы сообщим вам о результате.",
+            parse_mode='HTML'
         )
         await state.clear()
 
@@ -345,7 +346,7 @@ async def process_receipt_photo(message: Message, state: FSMContext, bot: Bot):
 @router.message(OrderStates.waiting_for_receipt, F.text,
                 ~F.text.startswith('/'))
 async def process_receipt_text_error(message: Message):
-    await message.answer("Пожалуйста, прикрепите <b>фотографию</b> или <b>скриншот</b> квитанции об оплате.")
+    await message.answer("Пожалуйста, прикрепите <b>фотографию</b> или <b>скриншот</b> квитанции об оплате.", parse_mode='HTML')
 
 
 @router.callback_query(F.data.startswith('approve_'))
