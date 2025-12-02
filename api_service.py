@@ -1,19 +1,24 @@
-# Запускать: uvicorn api_service:app --reload/ uvicorn api_service:app --reload --port 8000
-from fastapi import FastAPI, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from typing import List, Optional
-
 from starlette.concurrency import run_in_threadpool
+from starlette.requests import Request
+
+router = APIRouter(
+    prefix="/api",
+    tags=["API Каталога"],
+)
 
 
 class Product(BaseModel):
     id: Optional[int] = None
     name: str
     type: str
+    category: str
     price: float
     description: Optional[str] = None
+    image_url: str
 
 class CartItem(BaseModel):
     id: int
@@ -24,31 +29,8 @@ class CartPayload(BaseModel):
     items: List[CartItem]
 
 
-app = FastAPI(
-    title="API Каталога Периферии",
-    description='Простой REST API для получения информации о товарах.',
-    version='1.0.0'
-)
-
-origins = ["*"]
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-@app.get("/webapp.html", summary="Отдать HTML-файл для Telegram Web App")
-async def get_web_app():
-    # Файл index.html лежит в папке docs.
-    return FileResponse("docs/index.html")
-# --------------------------------------------------
-
-
 PRODUCTS_DB = [
-{
+    {
         "id": 201,
         "name": "Razer DeathAdder V3",
         "type": "Мышь",
@@ -244,13 +226,16 @@ def get_next_id():
 def _get_all_products_sync():
     return PRODUCTS_DB
 
+# =========================================================
+# 💡 ИСПОЛЬЗУЕМ router ВМЕСТО app
+# =========================================================
 
-@app.get("/products", response_model=List[Product], summary='Получить весь каталог товаров')
+@router.get("/products", response_model=List[Product], summary='Получить весь каталог товаров')
 async def get_all_products():
     return await run_in_threadpool(_get_all_products_sync)
 
 
-@app.get('/products/{product_id}', response_model=Product, summary="Получить товар по ID")
+@router.get('/products/{product_id}', response_model=Product, summary="Получить товар по ID")
 async def get_product_by_id(product_id: int):
     product = await run_in_threadpool(
         lambda: next((p for p in PRODUCTS_DB if p['id'] == product_id), None)
@@ -262,7 +247,7 @@ async def get_product_by_id(product_id: int):
     return product
 
 
-@app.get('/products/type/{product_type}', response_model=List[Product],
+@router.get('/products/type/{product_type}', response_model=List[Product],
          summary="Получить товары по типу (не используется фронтендом)")
 async def get_products_by_type(product_type: str):
     filtered_products = await run_in_threadpool(
@@ -272,7 +257,7 @@ async def get_products_by_type(product_type: str):
     return filtered_products
 
 
-@app.post("/products", response_model=Product, status_code=201, summary='Добавить новый товар')
+@router.post("/products", response_model=Product, status_code=201, summary='Добавить новый товар')
 async def create_product(product: Product):
     new_id = get_next_id()
     new_product = product.model_dump()
@@ -281,7 +266,7 @@ async def create_product(product: Product):
     return new_product
 
 
-@app.delete("/products/{product_id}", status_code=204, summary='Удалить товар по ID')
+@router.delete("/products/{product_id}", status_code=204, summary='Удалить товар по ID')
 async def delete_product(product_id: int):
     global PRODUCTS_DB
 
@@ -307,7 +292,7 @@ async def delete_product(product_id: int):
     return
 
 
-@app.post("/web-app/send-cart", summary="Обработка заказа от Telegram Web App")
+@router.post("/web-app/send-cart", summary="Обработка заказа от Telegram Web App")
 async def send_cart_to_bot(payload: CartPayload):
 
     print("-" * 50)
