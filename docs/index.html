@@ -374,7 +374,7 @@
                         </span>
                     </div>`;
 
-                const response = await fetch(`${API_BASE_URL}/products`, { signal: controller.signal });
+                const response = await fetch(`${API_BASE_URL}/api/products`, { signal: controller.signal });
 
                 clearTimeout(timeoutId);
                 if (!response.ok) {
@@ -522,7 +522,7 @@
                 };
 
                 try {
-                    const response = await fetch(`${API_BASE_URL}/web-app/send-cart`, {
+                    const response = await fetch(`${API_BASE_URL}/api/web-app/send-cart`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(dataToSend)
