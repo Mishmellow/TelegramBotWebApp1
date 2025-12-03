@@ -44,7 +44,7 @@ async def lifespan(app: FastAPI):
 
             await bot.send_message(
                 chat_id=MANAGER_CHAT_ID,
-                text='✨ **WEBHOOK СЕРВИС ЗАПУЩЕН** ✨\nБот переключен на Webhooks.'
+                text='✨ WEBHOOK СЕРВИС ЗАПУЩЕН ✨\nБот переключен на Webhooks.'
             )
         else:
             logger.warning(f'Running locally or in dev mode. Skipping Telegram Webhook setup.')

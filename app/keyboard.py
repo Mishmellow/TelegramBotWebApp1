@@ -17,7 +17,7 @@ class PeripheryCallback(CallbackData, prefix='periph'):
 
 
 def get_client_url():
-    return "http://127.0.0.1:8000"
+    return "https://telegrambotwebapp1-production.up.railway.app/webapp/index.html"
 
 
 def inline_category_keyboard() -> InlineKeyboardMarkup:

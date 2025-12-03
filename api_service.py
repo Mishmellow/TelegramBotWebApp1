@@ -226,9 +226,6 @@ def get_next_id():
 def _get_all_products_sync():
     return PRODUCTS_DB
 
-# =========================================================
-# 💡 ИСПОЛЬЗУЕМ router ВМЕСТО app
-# =========================================================
 
 @router.get("/products", response_model=List[Product], summary='Получить весь каталог товаров')
 async def get_all_products():
