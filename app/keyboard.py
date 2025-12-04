@@ -1,4 +1,4 @@
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo
 from aiogram.filters.callback_data import CallbackData
 from typing import Optional
 
@@ -30,7 +30,7 @@ def inline_category_keyboard() -> InlineKeyboardMarkup:
             InlineKeyboardButton(text="📞 Контакты", callback_data='contacts_button'),
         ],
         [
-            InlineKeyboardButton(text="🌐 Наш Сайт", url=get_client_url()),
+            InlineKeyboardButton(text="🛍️ Открыть Магазин", web_app=WebAppInfo(url=get_client_url())),
         ]
     ]
     return InlineKeyboardMarkup(inline_keyboard=keyboard)
