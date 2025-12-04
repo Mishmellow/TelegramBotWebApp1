@@ -4,9 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="258eb6ac-1b6e-4b97-b41c-1ba8a1ab0556" name="Changes" comment="3213">
+    <list default="true" id="258eb6ac-1b6e-4b97-b41c-1ba8a1ab0556" name="Changes" comment="Add into webhook_server.py StaticFiles">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/bot.py" beforeDir="false" afterPath="$PROJECT_DIR$/bot.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/webhook_server.py" beforeDir="false" afterPath="$PROJECT_DIR$/webhook_server.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -365,11 +364,18 @@
       <option name="project" value="LOCAL" />
       <updated>1764706113014</updated>
     </task>
-    <option name="localTasksCounter" value="33" />
+    <task id="LOCAL-00033" summary="Add into webhook_server.py StaticFiles">
+      <option name="closed" value="true" />
+      <created>1764882063684</created>
+      <option name="number" value="00033" />
+      <option name="presentableId" value="LOCAL-00033" />
+      <option name="project" value="LOCAL" />
+      <updated>1764882063684</updated>
+    </task>
+    <option name="localTasksCounter" value="34" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Fix: Set WEBHOOK_HOST using railway.yaml to ensure variable resolution" />
     <MESSAGE value="Add check into lifespan" />
     <MESSAGE value="relocate get_all_products" />
     <MESSAGE value="Update start handler and push" />
@@ -394,6 +400,7 @@
     <MESSAGE value="commit -re" />
     <MESSAGE value="add new code into api_service.py" />
     <MESSAGE value="3213" />
-    <option name="LAST_COMMIT_MESSAGE" value="3213" />
+    <MESSAGE value="Add into webhook_server.py StaticFiles" />
+    <option name="LAST_COMMIT_MESSAGE" value="Add into webhook_server.py StaticFiles" />
   </component>
 </project>
