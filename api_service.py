@@ -1,21 +1,24 @@
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List, Optional, Dict, Any 
 from starlette.concurrency import run_in_threadpool
 from starlette.requests import Request
 from aiogram import Bot
-from aiogram.types import Chat 
-
+from aiogram.types import Chat, InlineKeyboardMarkup, InlineKeyboardButton 
+import uuid 
+import time 
 
 telegram_bot: Optional[Bot] = None 
 MANAGER_CHAT_ID: Optional[int] = None
 
 def set_bot_instance(bot_instance: Bot, manager_chat_id: int):
-    """Устанавливает глобальный экземпляр бота для отправки сообщений."""
     global telegram_bot, MANAGER_CHAT_ID
     telegram_bot = bot_instance
     MANAGER_CHAT_ID = manager_chat_id
+
+
+PENDING_ORDERS: Dict[str, Dict[str, Any]] = {} 
 
 
 router = APIRouter(
@@ -301,12 +304,29 @@ async def delete_product(product_id: int):
 
     return
 
+def create_manager_keyboard(order_id: str) -> InlineKeyboardMarkup:
+    """Создает инлайн-клавиатуру для менеджера для управления заказом."""
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(
+                text="✅ Подтвердить", 
+                callback_data=f"order_confirm_{order_id}" 
+            ),
+            InlineKeyboardButton(
+                text="❌ Отменить", 
+                callback_data=f"order_cancel_{order_id}" 
+            )
+        ]
+    ])
+
 
 @router.post("/web-app/send-cart", summary="Обработка заказа от Telegram Web App")
 async def send_cart_to_bot(payload: CartPayload):
-
+    
+    order_id = str(uuid.uuid4()).split('-')[0].upper() 
+    
     print("-" * 50)
-    print(f"✅ ПОЛУЧЕН ЗАКАЗ ОТ ПОЛЬЗОВАТЕЛЯ TG ID: {payload.tg_user_id}")
+    print(f"✅ НОВЫЙ ЗАКАЗ (ID: {order_id}) ОТ TG ID: {payload.tg_user_id}")
     
     order_details = []
     total_cost = 0
@@ -333,41 +353,54 @@ async def send_cart_to_bot(payload: CartPayload):
     print(f"💰 ОБЩАЯ СУММА ЗАКАЗА: {total_cost:.2f} ₴")
     print("-" * 50)
     
+    if total_cost > 0:
+        PENDING_ORDERS[order_id] = {
+            'user_id': payload.tg_user_id,
+            'details': final_message_details,
+            'total': total_cost,
+            'timestamp': int(time.time()),
+            'status': 'pending'
+        }
+    
     if telegram_bot and MANAGER_CHAT_ID:
         
-        user_info_display = f"👤 ID Пользователя: `{payload.tg_user_id}`"
+        
+        user_link = f"[Пользователь (ID: {payload.tg_user_id})](tg://user?id={payload.tg_user_id})"
+        
         try:
             chat: Chat = await telegram_bot.get_chat(payload.tg_user_id)
             
-            display_name = []
+            display_name_parts = []
             if chat.first_name:
-                display_name.append(chat.first_name)
+                display_name_parts.append(chat.first_name)
             if chat.last_name:
-                display_name.append(chat.last_name)
+                display_name_parts.append(chat.last_name)
             
-            name_part = " ".join(display_name)
+            name_part = " ".join(display_name_parts)
             
             if chat.username:
                 username_part = f" (@{chat.username})"
             else:
                 username_part = ""
             
-            if name_part or username_part:
-                user_info_display = f"👤 Пользователь: *{name_part or 'Нет имени'}*{username_part} (ID: `{payload.tg_user_id}`)"
+            if name_part or chat.username:
+                user_link = f"[{name_part}{username_part} (ID: {payload.tg_user_id})](tg://user?id={payload.tg_user_id})"
 
         except Exception as e:
-            print(f"⚠️ НЕ УДАЛОСЬ ПОЛУЧИТЬ ИНФОРМАЦИЮ О ПОЛЬЗОВАТЕЛЕ {payload.tg_user_id}: {e}")
+            print(f"⚠️ НЕ УДАЛОСЬ ПОЛУЧИТЬ ИНФОРМАЦИЮ О ПОЛЬЗОВАТЕЛЕ (ID: {payload.tg_user_id}). Ошибка: {e}")
+            
+        user_info_display = f"👤 {user_link}"
 
         manager_notification = (
-            f"🔔 *НОВЫЙ ЗАКАЗ ИЗ WEB APP*\n"
-            f"{user_info_display}\n"  
+            f"🔔 *НОВЫЙ ЗАКАЗ (ID: {order_id}) ИЗ WEB APP*\n" 
+            f"{user_info_display}\n" 
             f"--- Состав заказа ---\n"
             f"{final_message_details.strip()}\n"
             f"*💰 Общая сумма:* {total_cost:.2f} ₴"
         )
         
         user_confirmation = (
-            f"✅ *Ваш заказ принят!*\n"
+            f"✅ Ваш заказ (ID: {order_id}) принят в обработку!\n" 
             f"Спасибо за покупку. Менеджер скоро свяжется с вами.\n"
             f"--- Детали заказа ---\n"
             f"{final_message_details.strip()}\n"
@@ -378,7 +411,9 @@ async def send_cart_to_bot(payload: CartPayload):
             await telegram_bot.send_message(
                 chat_id=MANAGER_CHAT_ID,
                 text=manager_notification,
-                parse_mode='Markdown'
+                parse_mode='Markdown',
+                reply_markup=create_manager_keyboard(order_id), 
+                disable_web_page_preview=True 
             )
             
             await telegram_bot.send_message(
@@ -389,5 +424,5 @@ async def send_cart_to_bot(payload: CartPayload):
             
         except Exception as e:
             print(f"🛑 ОШИБКА ОТПРАВКИ TELEGRAM: {e}")
-
-    return {"status": "success", "message": "Cart received and processed (simulated)."}
+    
+    return {"status": "success", "message": f"Cart received, order ID {order_id} created."}
