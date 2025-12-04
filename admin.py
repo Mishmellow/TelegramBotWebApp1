@@ -1,5 +1,5 @@
-from aiogram import Router, types, F
-from aiogram.types import CallbackQuery, Bot
+from aiogram import Router, types, F, Bot
+from aiogram.types import CallbackQuery
 from api_service import PENDING_ORDERS, MANAGER_CHAT_ID 
 from typing import Literal
 
