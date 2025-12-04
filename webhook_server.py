@@ -1,108 +1,122 @@
-import uvicorn
+import time
+import uuid
 import logging
-from fastapi import FastAPI, Request
-from aiogram import Bot, Dispatcher
-from aiogram.types import Update
-from contextlib import asynccontextmanager
-from fastapi.staticfiles import StaticFiles
+from typing import Dict, Any, Optional
 
-from settings import BOT_TOKEN, MANAGER_CHAT_ID, WEBHOOK_HOST, WEBHOOK_SECRET
-from database import init_db, populate_db
+from fastapi import FastAPI, APIRouter, HTTPException
+from pydantic import BaseModel, Field
+from aiogram import Bot
+from aiogram.utils.keyboard import InlineKeyboardBuilder
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from fastapi.staticfiles import StaticFiles  # Для обслуживания HTML/CSS/JS
 
-from app.start import router as start_router
-from app.menu_handlers import router as menu_router
-from app.order_handlers import router as order_router
-from admin import admin_router
+from settings import MANAGER_CHAT_ID
 
-from api_service import router as api_router, set_bot_instance
-
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 
-bot = Bot(token=BOT_TOKEN)
-dp = Dispatcher()
-
-set_bot_instance(bot, MANAGER_CHAT_ID)
+BOT_INSTANCE: Optional[Bot] = None
+PENDING_ORDERS: Dict[str, Any] = {}
 
 
-dp.include_router(admin_router)
-dp.include_router(start_router)
-dp.include_router(menu_router)
-dp.include_router(order_router)
+def set_bot_instance(bot: Bot, manager_id: int):
+    global BOT_INSTANCE
+    BOT_INSTANCE = bot
+    logger.info("Bot instance successfully set in api_service.")
 
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    logger.info('Starting up FastAPI service...')
+class CartItem(BaseModel):
+    name: str
+    price: float = Field(..., gt=0)
+    quantity: int = Field(..., gt=0)
+
+
+class CartData(BaseModel):
+    user_id: int = Field(..., description="Telegram ID пользователя")
+    username: str = Field(None, description="Username пользователя")
+    cart: list[CartItem]
+    total: float = Field(..., gt=0)
+
+
+api_router = APIRouter()
+
+
+def create_order_keyboard(order_id: str) -> InlineKeyboardMarkup:
+    builder = InlineKeyboardBuilder()
+    builder.add(
+        InlineKeyboardButton(text="✅ Подтвердить", callback_data=f"order_confirm_{order_id}"),
+        InlineKeyboardButton(text="❌ Отменить", callback_data=f"order_cancel_{order_id}")
+    )
+    return builder.as_markup()
+
+
+@api_router.post("/web-app/send-cart")
+async def send_cart_data(data: CartData):
+
+    if BOT_INSTANCE is None:
+        logger.error("BOT_INSTANCE is not initialized. Cannot send message.")
+        raise HTTPException(status_code=503, detail="Bot service not ready.")
+
+    order_id = str(uuid.uuid4())[:8].upper()
+
+    order_data = {
+        'user_id': data.user_id,
+        'cart': [item.model_dump() for item in data.cart],
+        'total': data.total,
+        'status': 'pending',
+        'timestamp': time.time(),
+        'username': data.username or 'N/A'
+    }
+
+    PENDING_ORDERS[order_id] = order_data
+    logger.info(f"Order {order_id} saved to PENDING_ORDERS.")
+
+    cart_details = "\n".join([f"- {item.name} ({item.quantity} шт.)" for item in data.cart])
+
+    manager_message = (
+        f"🚨 *НОВЫЙ ЗАКАЗ* | ID: `{order_id}`\n"
+        f"👤 *Клиент:* [Пользователь](tg://user?id={data.user_id}) (ID: `{data.user_id}`)\n"
+        f"@{data.username if data.username else 'Нет username'}\n"
+        f"💰 *Сумма:* {data.total:.2f} ₴\n"
+        f"--- Состав заказа ---\n"
+        f"{cart_details}\n"
+        f"------------------------\n"
+        f"Нажмите кнопку для обработки:"
+    )
 
     try:
-        await init_db()
-        await populate_db()
+        await BOT_INSTANCE.send_message(
+            chat_id=MANAGER_CHAT_ID,
+            text=manager_message,
+            reply_markup=create_order_keyboard(order_id),
+            parse_mode='Markdown'
+        )
 
-        host_to_check = WEBHOOK_HOST or ''
-        logger.info(f'WEBHOOK_HOST value: "{WEBHOOK_HOST}"')
-        logger.info(f'host_to_check value: "{host_to_check}"')
-
-        if host_to_check.startswith('https://'):
-            WEBHOOK_URL = f'{WEBHOOK_HOST}/webhook'
-            await bot.set_webhook(url=WEBHOOK_URL, secret_token=WEBHOOK_SECRET)
-            logger.info(f'Webhook started for {WEBHOOK_URL}')
-
-            await bot.send_message(
-                chat_id=MANAGER_CHAT_ID,
-                text='✨ WEBHOOK СЕРВИС ЗАПУЩЕН ✨\nБот переключен на Webhooks.'
-            )
-        else:
-            logger.warning(f'Running locally or in dev mode. Skipping Telegram Webhook setup.')
+        await BOT_INSTANCE.send_message(
+            chat_id=data.user_id,
+            text=f"✅ *Ваш заказ (ID: {order_id}) принят в обработку!* \nМенеджер скоро свяжется с вами.",
+            parse_mode='Markdown'
+        )
 
     except Exception as e:
-        logger.error(f'FATAL ERROR during startup: {e}')
+        logger.error(f"Failed to send message to manager/client: {e}")
+        raise HTTPException(status_code=500, detail="Failed to notify Telegram manager.")
 
-    yield
-
-    logger.info('Shutting down FastAPI service...')
-    await bot.delete_webhook()
-    logger.info(f'Webhook deleted')
+    return {"message": "Order received and manager notified", "order_id": order_id}
 
 
-app = FastAPI(lifespan=lifespan)
+app = FastAPI()
 
 app.include_router(api_router)
 
-
 app.mount(
     "/webapp",
-    StaticFiles(directory="docs", html=True),
+    StaticFiles(directory="webapp_static_files", html=True),
     name="webapp_static"
 )
 
 
-@app.post('/webhook')
-async def telegram_webhook(request: Request):
-    logger.info("RECEIVED POST REQUEST ON /webhook")
-
-    if WEBHOOK_SECRET and request.headers.get('X-Telegram-Bot-Api-Secret-Token') != WEBHOOK_SECRET:
-        logger.warning('Request rejected: Invalid Secret Token')
-        return {'ok': False, 'description': 'Invalid Secret Token'}
-
-    update_json = await request.json()
-
-    logger.info(f"Update JSON keys: {update_json.keys()}")
-
-    try:
-        update = Update.model_validate(update_json)
-        await dp.feed_update(bot, update)
-    except Exception as e:
-        logger.error(f'Error processing update: {e}', exc_info=True)
-
-    return {'ok': True}
-
-
 @app.get('/')
 async def health_check():
-    return {"status": "ok", "message": "Bot server is running on Webhooks"}
-
-
-if __name__ == '__main__':
-    uvicorn.run(app, host='0.0.0.0', port=8080)
+    return {"status": "ok", "message": "API service is running."}
