@@ -4,6 +4,17 @@ from pydantic import BaseModel
 from typing import List, Optional
 from starlette.concurrency import run_in_threadpool
 from starlette.requests import Request
+from aiogram import Bot # 
+
+telegram_bot: Optional[Bot] = None 
+MANAGER_CHAT_ID: Optional[int] = None
+
+def set_bot_instance(bot_instance: Bot, manager_chat_id: int):
+    """Устанавливает глобальный экземпляр бота для отправки сообщений."""
+    global telegram_bot, MANAGER_CHAT_ID
+    telegram_bot = bot_instance
+    MANAGER_CHAT_ID = manager_chat_id
+
 
 router = APIRouter(
     prefix="/api",
@@ -294,8 +305,8 @@ async def send_cart_to_bot(payload: CartPayload):
 
     print("-" * 50)
     print(f"✅ ПОЛУЧЕН ЗАКАЗ ОТ ПОЛЬЗОВАТЕЛЯ TG ID: {payload.tg_user_id}")
-    print(f"🛒 Товаров в корзине: {len(payload.items)}")
-
+    
+    order_details = []
     total_cost = 0
 
     def calculate_cost_sync():
@@ -306,13 +317,51 @@ async def send_cart_to_bot(payload: CartPayload):
             if product_info:
                 item_cost = product_info.get("price", 0.0) * item.quantity
                 total_cost += item_cost
-                print(f"   - {product_info['name']} (x{item.quantity}): {item_cost:.2f} ₴")
+                detail = f"   - {product_info['name']} (x{item.quantity}): {item_cost:.2f} ₴"
+                order_details.append(detail)
+                print(detail)
             else:
-                print(f"   - Товар ID {item.id} не найден.")
+                detail = f"   - Товар ID {item.id} не найден."
+                order_details.append(detail)
+                print(detail)
 
     await run_in_threadpool(calculate_cost_sync)
-
+    
+    final_message_details = "\n".join(order_details)
     print(f"💰 ОБЩАЯ СУММА ЗАКАЗА: {total_cost:.2f} ₴")
     print("-" * 50)
+    
+    if telegram_bot and MANAGER_CHAT_ID:
+        manager_notification = (
+            f"🔔 *НОВЫЙ ЗАКАЗ ИЗ WEB APP*\n"
+            f"👤 ID Пользователя: `{payload.tg_user_id}`\n"
+            f"--- Состав заказа ---\n"
+            f"{final_message_details.strip()}\n"
+            f"*💰 Общая сумма:* {total_cost:.2f} ₴"
+        )
+        
+        user_confirmation = (
+            f"✅ *Ваш заказ принят!*\n"
+            f"Спасибо за покупку. Менеджер скоро свяжется с вами.\n"
+            f"--- Детали заказа ---\n"
+            f"{final_message_details.strip()}\n"
+            f"💰 *Общая сумма:* {total_cost:.2f} ₴"
+        )
+        
+        try:
+            await telegram_bot.send_message(
+                chat_id=MANAGER_CHAT_ID,
+                text=manager_notification,
+                parse_mode='Markdown'
+            )
+            
+            await telegram_bot.send_message(
+                chat_id=payload.tg_user_id,
+                text=user_confirmation,
+                parse_mode='Markdown'
+            )
+            
+        except Exception as e:
+            print(f"🛑 ОШИБКА ОТПРАВКИ TELEGRAM: {e}")
 
     return {"status": "success", "message": "Cart received and processed (simulated)."}

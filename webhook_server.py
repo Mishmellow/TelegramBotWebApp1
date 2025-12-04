@@ -13,7 +13,7 @@ from app.start import router as start_router
 from app.menu_handlers import router as menu_router
 from app.order_handlers import router as order_router
 
-from api_service import router as api_router
+from api_service import router as api_router, set_bot_instance
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -21,6 +21,9 @@ logger = logging.getLogger(__name__)
 
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
+
+set_bot_instance(bot, MANAGER_CHAT_ID)
+
 
 dp.include_router(start_router)
 dp.include_router(menu_router)
@@ -82,7 +85,6 @@ async def telegram_webhook(request: Request):
     update_json = await request.json()
 
     logger.info(f"Update JSON keys: {update_json.keys()}")
-    # --------------------------------
 
     try:
         update = Update.model_validate(update_json)
