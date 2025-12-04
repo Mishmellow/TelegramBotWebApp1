@@ -4,7 +4,9 @@ from pydantic import BaseModel
 from typing import List, Optional
 from starlette.concurrency import run_in_threadpool
 from starlette.requests import Request
-from aiogram import Bot # 
+from aiogram import Bot
+from aiogram.types import Chat 
+
 
 telegram_bot: Optional[Bot] = None 
 MANAGER_CHAT_ID: Optional[int] = None
@@ -332,9 +334,33 @@ async def send_cart_to_bot(payload: CartPayload):
     print("-" * 50)
     
     if telegram_bot and MANAGER_CHAT_ID:
+        
+        user_info_display = f"👤 ID Пользователя: `{payload.tg_user_id}`"
+        try:
+            chat: Chat = await telegram_bot.get_chat(payload.tg_user_id)
+            
+            display_name = []
+            if chat.first_name:
+                display_name.append(chat.first_name)
+            if chat.last_name:
+                display_name.append(chat.last_name)
+            
+            name_part = " ".join(display_name)
+            
+            if chat.username:
+                username_part = f" (@{chat.username})"
+            else:
+                username_part = ""
+            
+            if name_part or username_part:
+                user_info_display = f"👤 Пользователь: *{name_part or 'Нет имени'}*{username_part} (ID: `{payload.tg_user_id}`)"
+
+        except Exception as e:
+            print(f"⚠️ НЕ УДАЛОСЬ ПОЛУЧИТЬ ИНФОРМАЦИЮ О ПОЛЬЗОВАТЕЛЕ {payload.tg_user_id}: {e}")
+
         manager_notification = (
             f"🔔 *НОВЫЙ ЗАКАЗ ИЗ WEB APP*\n"
-            f"👤 ID Пользователя: `{payload.tg_user_id}`\n"
+            f"{user_info_display}\n"  
             f"--- Состав заказа ---\n"
             f"{final_message_details.strip()}\n"
             f"*💰 Общая сумма:* {total_cost:.2f} ₴"
