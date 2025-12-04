@@ -12,6 +12,7 @@ from database import init_db, populate_db
 from app.start import router as start_router
 from app.menu_handlers import router as menu_router
 from app.order_handlers import router as order_router
+from admin import admin_router
 
 from api_service import router as api_router, set_bot_instance
 
@@ -25,6 +26,7 @@ dp = Dispatcher()
 set_bot_instance(bot, MANAGER_CHAT_ID)
 
 
+dp.include_router(admin_router)
 dp.include_router(start_router)
 dp.include_router(menu_router)
 dp.include_router(order_router)
@@ -39,6 +41,8 @@ async def lifespan(app: FastAPI):
         await populate_db()
 
         host_to_check = WEBHOOK_HOST or ''
+        logger.info(f'WEBHOOK_HOST value: "{WEBHOOK_HOST}"')
+        logger.info(f'host_to_check value: "{host_to_check}"')
 
         if host_to_check.startswith('https://'):
             WEBHOOK_URL = f'{WEBHOOK_HOST}/webhook'
