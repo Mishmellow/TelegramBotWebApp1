@@ -27,7 +27,6 @@ async def main():
 
     @dp.message(CommandStart())
     async def command_start_handler(message: types.Message) -> None:
-        """Обрабатывает команду /start и показывает кнопку Web App."""
         
         web_app_url = f"{WEBHOOK_HOST}"
 
