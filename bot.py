@@ -9,7 +9,7 @@ from aiogram.client.default import DefaultBotProperties
 
 from settings import BOT_TOKEN, WEBHOOK_HOST, MANAGER_CHAT_ID
 from api_service import set_bot_instance
-from admin import admin_router
+from admin import admin_routers
 
 
 WEB_APP_URL = f"{WEBHOOK_HOST}/webapp/index.html"
