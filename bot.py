@@ -12,7 +12,7 @@ from api_service import set_bot_instance
 from admin import admin_router
 
 
-WEB_APP_URL = f"{WEBHOOK_HOST}/webapp.html"
+WEB_APP_URL = f"{WEBHOOK_HOST}/webapp/index.html"
 
 logging.basicConfig(level=logging.INFO)
 
@@ -46,6 +46,7 @@ async def start_handler(message: types.Message):
 
 
 async def main():
+    
     if not BOT_TOKEN:
         print("🛑 ОШИБКА: Токен BOT_TOKEN не найден в переменных окружения. Проверьте файл .env.")
         return

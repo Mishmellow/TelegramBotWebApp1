@@ -1,2 +1,1 @@
-web: uvicorn api_service:app --host 0.0.0.0 --port $PORT
-bot: python bot.py
+uvicorn main_webhook_server:app --host 0.0.0.0 --port 8000

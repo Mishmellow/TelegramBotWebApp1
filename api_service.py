@@ -1,3 +1,6 @@
+# web: uvicorn api_service:app --host 0.0.0.0 --port $PORT
+# bot: python bot.py - it is for Procfile if process into bot, if will not work/ это код для прокфалй, на случай, если код не заработает
+
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
