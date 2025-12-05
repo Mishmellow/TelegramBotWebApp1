@@ -4,5 +4,6 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
-
-ENTRYPOINT python -m uvicorn main_webhook_server:app --host 0.0.0.0 --port $PORT
+RUN chmod +x docker-entrypoint.sh 
+ENTRYPOINT ["/bin/bash", "-c"]
+CMD ["exec python -m uvicorn main_webhook_server:app --host 0.0.0.0 --port $PORT"]
