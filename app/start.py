@@ -2,7 +2,6 @@ import json
 import logging
 from aiogram import Bot, Dispatcher, Router, F
 from aiogram.types import Message, WebAppInfo, InlineKeyboardMarkup, InlineKeyboardButton
-from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from settings import WEBAPP_URL, BOT_TOKEN
 

@@ -4,11 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="258eb6ac-1b6e-4b97-b41c-1ba8a1ab0556" name="Changes" comment="Add new line into procfile">
-      <change beforePath="$PROJECT_DIR$/.env" beforeDir="false" afterPath="$PROJECT_DIR$/.env" afterDir="false" />
+    <list default="true" id="258eb6ac-1b6e-4b97-b41c-1ba8a1ab0556" name="Changes" comment="Delete router for web-app, add new url">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/start.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/start.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/settings.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -394,11 +391,18 @@
       <option name="project" value="LOCAL" />
       <updated>1764962440922</updated>
     </task>
-    <option name="localTasksCounter" value="36" />
+    <task id="LOCAL-00036" summary="Delete router for web-app, add new url">
+      <option name="closed" value="true" />
+      <created>1765039726200</created>
+      <option name="number" value="00036" />
+      <option name="presentableId" value="LOCAL-00036" />
+      <option name="project" value="LOCAL" />
+      <updated>1765039726200</updated>
+    </task>
+    <option name="localTasksCounter" value="37" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Update start handler and push" />
     <MESSAGE value="delete cmd /help" />
     <MESSAGE value="Update start" />
     <MESSAGE value="Add new code into main" />
@@ -423,6 +427,7 @@
     <MESSAGE value="Add into webhook_server.py StaticFiles" />
     <MESSAGE value="rewrite webhook_server.py and change way webhook" />
     <MESSAGE value="Add new line into procfile" />
-    <option name="LAST_COMMIT_MESSAGE" value="Add new line into procfile" />
+    <MESSAGE value="Delete router for web-app, add new url" />
+    <option name="LAST_COMMIT_MESSAGE" value="Delete router for web-app, add new url" />
   </component>
 </project>
