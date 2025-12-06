@@ -145,7 +145,10 @@
         let activeFilter = 'Все';
         let searchTimeout = null;
         let mainButtonBound = false;
-        const API_BASE_URL = 'http://127.0.0.1:8000';
+        
+        // КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ: Используем фактический публичный URL Railway
+        // Это гарантирует, что fetch-запросы пойдут на ваш сервер, а не на localhost.
+        const API_BASE_URL = 'https://telegrambotwebapp1-production.up.railway.app'; 
 
         const tgWebApp = window.Telegram.WebApp;
 
@@ -374,6 +377,7 @@
                         </span>
                     </div>`;
 
+                // КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ: Используем API_BASE_URL для fetch продуктов
                 const response = await fetch(`${API_BASE_URL}/products`, { signal: controller.signal });
 
                 clearTimeout(timeoutId);
@@ -407,6 +411,7 @@
                 }
 
                 console.error('Error fetching products:', error);
+                document.getElementById('apiStatus').textContent = `Статус API: Ошибка (${error.message}).`;
                 document.getElementById('productsContainer').innerHTML = `<div class="col-span-full text-center p-8 opacity-70 text-red-500">
                     <p class="text-xl font-medium">❌ Ошибка загрузки.</p>
                     <p>Проверьте сервер: ${API_BASE_URL}</p>
@@ -485,55 +490,79 @@
                 }, 500);
             }
         }
-
+        
+        // КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ: Переписываем логику для использования прямого API POST
         async function handleTransferCart() {
             const cartItemsArray = Object.values(webAppCart);
+            
             if (cartItemsArray.length === 0) {
                 if (tgWebApp) tgWebApp.showAlert('Корзина пуста.');
                 return;
             }
 
+            // Проверка данных пользователя Telegram
+            const userId = tgWebApp.initDataUnsafe?.user?.id || 123456789; // Запасной ID для тестов
+            const username = tgWebApp.initDataUnsafe?.user?.username || 'unknown_user';
+            
             const simplifiedItems = cartItemsArray.map(item => ({
                 id: item.product.id,
+                name: item.product.name, // Добавляем имя для удобства
+                price: item.product.price,
                 quantity: item.quantity
             }));
 
-            if (tgWebApp && tgWebApp.initDataUnsafe && tgWebApp.initDataUnsafe.user && tgWebApp.initDataUnsafe.user.id) {
-                const dataToSend = {
-                    tg_user_id: tgWebApp.initDataUnsafe.user.id,
-                    items: simplifiedItems
-                };
+            const dataToSend = {
+                tg_user_id: userId,
+                username: username,
+                items: simplifiedItems
+            };
 
-                if (tgWebApp.MainButton) {
-                    tgWebApp.MainButton.setText('Отправка...');
-                    tgWebApp.MainButton.disable();
-                }
+            const initialText = tgWebApp.MainButton ? tgWebApp.MainButton.text : 'Перенести в корзину Бота';
 
-                closeCartModal();
-                tgWebApp.sendData(JSON.stringify(dataToSend));
+            if (tgWebApp.MainButton) {
+                tgWebApp.MainButton.setText('Отправка...');
+                tgWebApp.MainButton.disable();
+            }
+            
+            closeCartModal();
 
-                webAppCart = {};
-                updateCartUI();
+            try {
+                // Всегда используем API POST для надежности
+                const response = await fetch(`${API_BASE_URL}/web-app/send-cart`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(dataToSend)
+                });
 
-            } else {
-                const dataToSend = {
-                    tg_user_id: 123456789,
-                    items: simplifiedItems
-                };
-
-                try {
-                    const response = await fetch(`${API_BASE_URL}/web-app/send-cart`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(dataToSend)
-                    });
-
-                    if (response.ok) {
-                        webAppCart = {};
-                        updateCartUI();
+                if (response.ok) {
+                    const result = await response.json();
+                    
+                    // Успех
+                    webAppCart = {};
+                    updateCartUI();
+                    
+                    if (tgWebApp) {
+                        // Показываем alert и закрываем Web App, как только заказ принят
+                        tgWebApp.showAlert(`✅ Заказ ID ${result.order_id} отправлен! Менеджер свяжется с вами.`, 
+                            () => tgWebApp.close());
+                    } else {
+                         console.log('Order successfully sent:', result);
                     }
-                } catch (error) {
-                    console.error('Ошибка отправки:', error);
+                } else {
+                    // Ошибка сервера
+                    const errorDetails = await response.json();
+                    const errorMessage = `Ошибка сервера: ${errorDetails.detail || response.statusText}`;
+                    console.error('Ошибка отправки:', errorMessage);
+                    if (tgWebApp) tgWebApp.showAlert(errorMessage);
+                }
+            } catch (error) {
+                // Ошибка сети
+                console.error('Ошибка отправки:', error);
+                if (tgWebApp) tgWebApp.showAlert('Ошибка сети. Проверьте подключение.');
+            } finally {
+                if (tgWebApp.MainButton) {
+                    tgWebApp.MainButton.setText(initialText);
+                    tgWebApp.MainButton.enable();
                 }
             }
         }
