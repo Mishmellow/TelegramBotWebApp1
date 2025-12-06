@@ -4,10 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="258eb6ac-1b6e-4b97-b41c-1ba8a1ab0556" name="Changes" comment="commit -re">
+    <list default="true" id="258eb6ac-1b6e-4b97-b41c-1ba8a1ab0556" name="Changes" comment="add new code into api_service.py">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/api_service.py" beforeDir="false" afterPath="$PROJECT_DIR$/api_service.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/bot.py" beforeDir="false" afterPath="$PROJECT_DIR$/bot.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -349,11 +347,18 @@
       <option name="project" value="LOCAL" />
       <updated>1764702883204</updated>
     </task>
-    <option name="localTasksCounter" value="31" />
+    <task id="LOCAL-00031" summary="add new code into api_service.py">
+      <option name="closed" value="true" />
+      <created>1764703906244</created>
+      <option name="number" value="00031" />
+      <option name="presentableId" value="LOCAL-00031" />
+      <option name="project" value="LOCAL" />
+      <updated>1764703906244</updated>
+    </task>
+    <option name="localTasksCounter" value="32" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Final fix for Webhook logic (HTTPS check) and JSON format" />
     <MESSAGE value="DEBUG HOST VALUE" />
     <MESSAGE value="Fix: Set WEBHOOK_HOST using railway.yaml to ensure variable resolution" />
     <MESSAGE value="Add check into lifespan" />
@@ -378,6 +383,7 @@
     <MESSAGE value="Add new class" />
     <MESSAGE value="Create a Procfile and add into it our web. Also we create new file(bot.py) and write code for it" />
     <MESSAGE value="commit -re" />
-    <option name="LAST_COMMIT_MESSAGE" value="commit -re" />
+    <MESSAGE value="add new code into api_service.py" />
+    <option name="LAST_COMMIT_MESSAGE" value="add new code into api_service.py" />
   </component>
 </project>
