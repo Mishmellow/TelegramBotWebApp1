@@ -4,9 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="258eb6ac-1b6e-4b97-b41c-1ba8a1ab0556" name="Changes" comment="Update start and add new line into env again">
+    <list default="true" id="258eb6ac-1b6e-4b97-b41c-1ba8a1ab0556" name="Changes" comment="Fix from admin import router">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/start.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/start.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -408,11 +407,18 @@
       <option name="project" value="LOCAL" />
       <updated>1765039903285</updated>
     </task>
-    <option name="localTasksCounter" value="38" />
+    <task id="LOCAL-00038" summary="Fix from admin import router">
+      <option name="closed" value="true" />
+      <created>1765040770852</created>
+      <option name="number" value="00038" />
+      <option name="presentableId" value="LOCAL-00038" />
+      <option name="project" value="LOCAL" />
+      <updated>1765040770852</updated>
+    </task>
+    <option name="localTasksCounter" value="39" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Update start" />
     <MESSAGE value="Add new code into main" />
     <MESSAGE value="Update order_handlers.py and add new handlers for pay, and new information" />
     <MESSAGE value="Add new state" />
@@ -437,6 +443,7 @@
     <MESSAGE value="Add new line into procfile" />
     <MESSAGE value="Delete router for web-app, add new url" />
     <MESSAGE value="Update start and add new line into env again" />
-    <option name="LAST_COMMIT_MESSAGE" value="Update start and add new line into env again" />
+    <MESSAGE value="Fix from admin import router" />
+    <option name="LAST_COMMIT_MESSAGE" value="Fix from admin import router" />
   </component>
 </project>
