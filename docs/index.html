@@ -206,6 +206,7 @@
             }
         }
 
+
         function addItemToCart(product) {
             const productId = product.id;
 
@@ -373,7 +374,7 @@
                         </span>
                     </div>`;
                 
-                const apiUrl = `${API_BASE_URL}/products`;
+                const apiUrl = `${API_BASE_URL}/api/products`;
 
                 console.log("DEBUG: Fetching products from:", apiUrl);
 
@@ -520,7 +521,7 @@
 
             console.log("DEBUG: Payload constructed with init_data.");
             
-            const apiUrl = `${API_BASE_URL}/web-app/send-cart`;
+            const apiUrl = `${API_BASE_URL}/api/web-app/send-cart`;
             console.log("DEBUG: Target URL:", apiUrl);
             
             const initialText = tgWebApp.MainButton ? tgWebApp.MainButton.text : 'Перенести в корзину Бота';

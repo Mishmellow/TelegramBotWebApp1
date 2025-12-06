@@ -25,7 +25,6 @@ PENDING_ORDERS: Dict[str, Dict[str, Any]] = {}
 
 
 router = APIRouter(
-    prefix="/api",
     tags=["API Каталога"],
 )
 
