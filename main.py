@@ -1,50 +1,62 @@
 import asyncio
 import logging
-from aiogram import Dispatcher, Bot
-from aiogram.client.default import DefaultBotProperties
-
-from database import init_db, populate_db
-
-from settings import MANAGER_CHAT_ID, BOT_TOKEN
-
-from app.start import router as start_router
-from app.menu_handlers import router as menu_router
-from app.order_handlers import router as order_router
-
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+from aiogram import Bot, Dispatcher, types
+from aiogram.filters import CommandStart
+from settings import BOT_TOKEN, WEBHOOK_HOST, WEBHOOK_SECRET, MANAGER_CHAT_ID
+from api_service import set_bot_instance 
+from admin import admin_router 
 
 
-async def on_startup(bot: Bot):
-    await bot.send_message(
-        chat_id=MANAGER_CHAT_ID,
-        text="✨СЕРВИС ЗАПУЩЕН ✨\nБот вышел в онлайн и готов к работе."
-    )
+logging.basicConfig(level=logging.INFO)
 
 async def main():
-    await init_db()
-    await populate_db()
+    if not BOT_TOKEN:
+        print("🛑 ОШИБКА: Токен бота не установлен. Проверьте файл .env.")
+        return
+    
+    if MANAGER_CHAT_ID == 0:
+        print("🛑 ОШИБКА: ID менеджера не установлен или равен нулю. Проверьте переменную MANAGER_CHAT_ID в файле .env.")
+        return
 
-    bot = Bot(
-        token=BOT_TOKEN,
-        default=DefaultBotProperties(parse_mode="Markdown")
-    )
-
+    bot = Bot(token=BOT_TOKEN, parse_mode='Markdown')
     dp = Dispatcher()
 
-    dp.startup.register(on_startup)
+    set_bot_instance(bot, MANAGER_CHAT_ID)
 
-    dp.include_router(order_router)
-    dp.include_router(menu_router)
-    dp.include_router(start_router)
+    dp.include_router(admin_router) 
 
-    await bot.delete_webhook(drop_pending_updates=True)
-    await dp.start_polling(bot)
+    @dp.message(CommandStart())
+    async def command_start_handler(message: types.Message) -> None:
+        
+        web_app_url = f"{WEBHOOK_HOST}"
+
+        keyboard = types.InlineKeyboardMarkup(inline_keyboard=[
+            [
+                types.InlineKeyboardButton(
+                    text="🛍️ Перейти в Магазин",
+                    web_app=types.WebAppInfo(url=web_app_url)
+                )
+            ]
+        ])
+
+        await message.answer(
+            f"Привет, *{message.from_user.full_name}*! "
+            "Добро пожаловать в наш онлайн-магазин! "
+            "Нажмите кнопку ниже, чтобы начать покупки.",
+            reply_markup=keyboard
+        )
+
+    try:
+        print("🤖 Бот запущен и готов к работе...")
+        await dp.start_polling(bot)
+    except Exception as e:
+        print(f"🛑 Критическая ошибка при запуске бота: {e}")
+    finally:
+        await bot.session.close()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
-        logging.info("Бот остановлен вручную.")
-    except Exception as e:
-        logging.critical(f"❌ КРИТИЧЕСКАЯ ОШИБКА ЗАПУСКА: {e}", exc_info=True)
+        print("❌ Бот остановлен вручную.")

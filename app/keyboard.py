@@ -1,4 +1,4 @@
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo
 from aiogram.filters.callback_data import CallbackData
 from typing import Optional
 
@@ -17,7 +17,7 @@ class PeripheryCallback(CallbackData, prefix='periph'):
 
 
 def get_client_url():
-    return "http://127.0.0.1:8000"
+    return "https://telegrambotwebapp1-production.up.railway.app/webapp/index.html"
 
 
 def inline_category_keyboard() -> InlineKeyboardMarkup:
@@ -30,7 +30,7 @@ def inline_category_keyboard() -> InlineKeyboardMarkup:
             InlineKeyboardButton(text="📞 Контакты", callback_data='contacts_button'),
         ],
         [
-            InlineKeyboardButton(text="🌐 Наш Сайт", url=get_client_url()),
+            InlineKeyboardButton(text="🛍️ Открыть Магазин", web_app=WebAppInfo(url=get_client_url())),
         ]
     ]
     return InlineKeyboardMarkup(inline_keyboard=keyboard)

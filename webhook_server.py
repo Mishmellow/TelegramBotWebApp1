@@ -1,90 +1,74 @@
-import uvicorn
+import asyncio
 import logging
-from fastapi import FastAPI, Request
-from aiogram import Bot, Dispatcher
-from aiogram.types import Update
-from contextlib import asynccontextmanager
+from aiogram import Bot, Dispatcher, types
+from aiogram.enums import ParseMode
+from aiogram.filters import CommandStart
+from aiogram.utils.keyboard import InlineKeyboardBuilder
+from aiogram.types.web_app_info import WebAppInfo
+from aiogram.client.default import DefaultBotProperties
 
-from settings import BOT_TOKEN, MANAGER_CHAT_ID, WEBHOOK_HOST, WEBHOOK_SECRET
-from database import init_db, populate_db
-
-from app.start import router as start_router
-from app.menu_handlers import router as menu_router
-from app.order_handlers import router as order_router
-
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
+from settings import BOT_TOKEN, WEBHOOK_HOST, MANAGER_CHAT_ID
+from api_service import set_bot_instance
+from admin import admin_router
 
 
-bot = Bot(token=BOT_TOKEN)
-dp = Dispatcher()
-
-dp.include_router(start_router)
-dp.include_router(menu_router)
-dp.include_router(order_router)
+WEB_APP_URL = f"{WEBHOOK_HOST}/webapp/index.html"
+logging.basicConfig(level=logging.INFO)
 
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    logger.info('Starting up FastAPI service...')
+def get_web_app_keyboard() -> types.InlineKeyboardMarkup:
+    builder = InlineKeyboardBuilder()
 
+    web_app_info = WebAppInfo(url=WEB_APP_URL)
+
+    builder.button(
+        text="🛍️ Перейти в Каталог Periphery",
+        web_app=web_app_info
+    )
+
+    return builder.as_markup()
+
+
+async def start_handler(message: types.Message):
+    markup = get_web_app_keyboard()
+
+    welcome_text = (
+        "Привет! 👋\n"
+        "Добро пожаловать в каталог игрового оборудования Periphery.\n\n"
+        "Нажми кнопку ниже, чтобы открыть наше Web App и выбрать товары."
+    )
+
+    await message.answer(
+        text=welcome_text,
+        reply_markup=markup
+    )
+
+
+async def main():
+    if not BOT_TOKEN:
+        print("🛑 ОШИБКА: Токен BOT_TOKEN не найден в переменных окружения. Проверьте файл .env.")
+        return
+
+    if not MANAGER_CHAT_ID:
+        print("🛑 ОШИБКА: ID менеджера MANAGER_CHAT_ID не установлен. Проверьте файл .env.")
+        return
+
+    bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
+    dp = Dispatcher()
+
+    set_bot_instance(bot, MANAGER_CHAT_ID)
+    dp.include_router(admin_router)
+
+    dp.message.register(start_handler, CommandStart())
+
+    await bot.delete_webhook(drop_pending_updates=True)
+
+    print("🚀 Бот запущен! Ищи его в Telegram...")
     try:
-        await init_db()
-        await populate_db()
-
-        host_to_check = WEBHOOK_HOST or ''
-
-        if host_to_check.startswith('https://'):
-            WEBHOOK_URL = f'{WEBHOOK_HOST}/webhook'
-            await bot.set_webhook(url=WEBHOOK_URL, secret_token=WEBHOOK_SECRET)
-            logger.info(f'Webhook started for {WEBHOOK_URL}')
-
-            await bot.send_message(
-                chat_id=MANAGER_CHAT_ID,
-                text='✨ **WEBHOOK СЕРВИС ЗАПУЩЕН** ✨\nБот переключен на Webhooks.'
-            )
-        else:
-            logger.warning(f'Running locally or in dev mode. Skipping Telegram Webhook setup.')
-
-    except Exception as e:
-        logger.error(f'FATAL ERROR during startup: {e}')
-
-    yield
-
-    logger.info('Shutting down FastAPI service...')
-    await bot.delete_webhook()
-    logger.info(f'Webhook deleted')
+        await dp.start_polling(bot)
+    finally:
+        await bot.session.close()
 
 
-app = FastAPI(lifespan=lifespan)
-
-
-@app.post('/webhook')
-async def telegram_webhook(request: Request):
-    logger.info("RECEIVED POST REQUEST ON /webhook")
-
-    if WEBHOOK_SECRET and request.headers.get('X-Telegram-Bot-Api-Secret-Token') != WEBHOOK_SECRET:
-        logger.warning('Request rejected: Invalid Secret Token')
-        return {'ok': False, 'description': 'Invalid Secret Token'}
-
-    update_json = await request.json()
-
-    logger.info(f"Update JSON keys: {update_json.keys()}")
-    # --------------------------------
-
-    try:
-        update = Update.model_validate(update_json)
-        await dp.feed_update(bot, update)
-    except Exception as e:
-        logger.error(f'Error processing update: {e}', exc_info=True)
-
-    return {'ok': True}
-
-
-@app.get('/')
-async def health_check():
-    return {'status": "ok", "message": "Bot server is running on Webhooks'}
-
-
-if __name__ == '__main__':
-    uvicorn.run(app, host='0.0.0.0', port=8080)
+if __name__ == "__main__":
+    asyncio.run(main())

@@ -1,26 +1,55 @@
-from aiogram import Router
-from aiogram.filters import CommandStart
-from aiogram.types import Message
-from aiogram.fsm.context import FSMContext
-from aiogram import Bot
 import logging
+import asyncio
+from aiogram import Bot, Dispatcher, Router, F
+from aiogram.types import Message, WebAppInfo, InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.fsm.state import State, StatesGroup
 
-from app.keyboard import inline_category_keyboard
+from settings import WEBAPP_URL, BOT_TOKEN, MANAGER_CHAT_ID
+from api_service import set_bot_instance
+from admin import admin_router
+
+logger = logging.getLogger(__name__)
 
 router = Router()
 
-@router.message(CommandStart())
-async def start(message: Message, state: FSMContext, bot: Bot):
-    user_id = message.from_user.id
-    user_fullname = message.from_user.full_name
-    logging.info(f"Пользователь {user_id}\n Присоединился {user_fullname}")
 
-    await state.clear()
+class UserForm(StatesGroup):
+    waiting_for_web_app_data = State()
 
-    await bot.send_message(
-        text=f"👋 Привет, {message.from_user.full_name}!\n"
-             "Я бот для приёма заказов.\n\n"
-             "Выберите действие или используйте команду /help для справки.\n",
-        chat_id=message.chat.id,
-        reply_markup=inline_category_keyboard()
-    )
+
+@router.message(F.text == "/start")
+async def command_start_handler(message: Message) -> None:
+
+    web_app_url = WEBAPP_URL
+
+    web_app_info = WebAppInfo(url=web_app_url)
+
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="🚀 Перейти в Web App", web_app=web_app_info)]
+    ])
+
+    await message.answer("Добро пожаловать! Нажмите кнопку ниже, чтобы открыть наше Web App:", reply_markup=keyboard)
+
+
+def initiate_bot() -> tuple[Bot, Dispatcher]:
+    bot = Bot(token=BOT_TOKEN, parse_mode='HTML')
+    dp = Dispatcher()
+
+    dp.include_router(router)
+    dp.include_router(admin_router)
+
+    set_bot_instance(bot, MANAGER_CHAT_ID)
+
+    return bot, dp
+
+
+async def main():
+    bot, dp = initiate_bot()
+
+    logger.info("Bot Polling service started.")
+    await dp.start_polling(bot)
+
+
+if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
+    asyncio.run(main())
