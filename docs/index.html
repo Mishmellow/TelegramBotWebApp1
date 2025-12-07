@@ -40,10 +40,6 @@
             background-color: var(--tg-theme-secondary-bg-color, #ffffff);
         }
 
-        /* #apiStatus {
-            display: none;
-        } */
-
         .filter-active {
             background-color: var(--tg-theme-link-color, #007bff);
             color: var(--tg-theme-button-text-color, #ffffff);
@@ -145,7 +141,9 @@
         let activeFilter = 'Все';
         let searchTimeout = null;
         let mainButtonBound = false;
-        const API_BASE_URL = 'https://telegrambotwebapp1-production.up.railway.app';
+        
+
+        const API_BASE_URL = 'https://telegrambotwebapp1-production.up.railway.app'; 
 
         const tgWebApp = window.Telegram.WebApp;
 
@@ -167,9 +165,9 @@
                     tgWebApp.BackButton.hide();
                 }
 
-                console.log("Telegram Web App SDK is ready.");
+                console.log("DEBUG: Telegram Web App SDK is ready.");
             } else {
-                console.warn("Telegram Web App SDK not found. Running in standalone mode.");
+                console.warn("DEBUG: Telegram Web App SDK not found. Running in standalone mode.");
             }
         }
 
@@ -195,6 +193,7 @@
                     if (!mainButtonBound) {
                         tgWebApp.MainButton.onClick(handleTransferCart);
                         mainButtonBound = true;
+                        console.log("DEBUG: MainButton listener attached.");
                     }
                     tgWebApp.MainButton.show();
                 } else {
@@ -206,6 +205,7 @@
                 renderCartModal();
             }
         }
+
 
         function addItemToCart(product) {
             const productId = product.id;
@@ -373,8 +373,12 @@
                             <span class="loading-dot w-2 h-2 rounded-full bg-blue-500 mx-1"></span>
                         </span>
                     </div>`;
+                
+                const apiUrl = `${API_BASE_URL}/api/products`;
 
-                const response = await fetch(`${API_BASE_URL}/api/products`, { signal: controller.signal });
+                console.log("DEBUG: Fetching products from:", apiUrl);
+
+                const response = await fetch(apiUrl, { signal: controller.signal });
 
                 clearTimeout(timeoutId);
                 if (!response.ok) {
@@ -385,7 +389,7 @@
                 if (Array.isArray(data)) {
                     products = data.filter(p => p.id && typeof p.price === 'number');
                 } else {
-                    console.error("API did not return an array:", data);
+                    console.error("DEBUG: API did not return an array:", data);
                     products = [];
                 }
 
@@ -393,23 +397,26 @@
                 applyFilters();
 
                 document.getElementById('apiStatus').textContent = 'Статус API: Успешно подключено.';
+                console.log("DEBUG: Products successfully loaded.");
 
             } catch (error) {
                 clearTimeout(timeoutId);
 
                 if (error.name === 'AbortError') {
                     document.getElementById('apiStatus').textContent = `Статус API: Таймаут.`;
+                    console.error("DEBUG: Fetch timeout error.");
                     document.getElementById('productsContainer').innerHTML = `<div class="col-span-full text-center p-8 opacity-70 text-red-500">
-                        <p class="text-xl font-medium">❌ Сервер не отвечает.</p>
-                        <p>Проверьте, что Uvicorn запущен.</p>
+                        <p class="text-xl font-medium">❌ Сервер не отвечает (Таймаут).</p>
+                        <p>Проверьте, что Uvicorn запущен и API доступно по адресу /products.</p>
                     </div>`;
                     return;
                 }
 
-                console.error('Error fetching products:', error);
+                console.error('DEBUG: Error fetching products:', error);
+                document.getElementById('apiStatus').textContent = `Статус API: Ошибка (${error.message}).`;
                 document.getElementById('productsContainer').innerHTML = `<div class="col-span-full text-center p-8 opacity-70 text-red-500">
                     <p class="text-xl font-medium">❌ Ошибка загрузки.</p>
-                    <p>Проверьте сервер: ${API_BASE_URL}</p>
+                    <p>Проверьте, что API доступно по адресу /products.</p>
                 </div>`;
             }
         }
@@ -485,55 +492,81 @@
                 }, 500);
             }
         }
-
+        
         async function handleTransferCart() {
+            console.log("DEBUG: handleTransferCart started.");
+
             const cartItemsArray = Object.values(webAppCart);
+            
             if (cartItemsArray.length === 0) {
                 if (tgWebApp) tgWebApp.showAlert('Корзина пуста.');
                 return;
             }
 
+            const initData = tgWebApp.initData || '';
+            const userId = tgWebApp.initDataUnsafe?.user?.id || 0;
+            
             const simplifiedItems = cartItemsArray.map(item => ({
                 id: item.product.id,
+                name: item.product.name, 
+                price: item.product.price,
                 quantity: item.quantity
             }));
 
-            if (tgWebApp && tgWebApp.initDataUnsafe && tgWebApp.initDataUnsafe.user && tgWebApp.initDataUnsafe.user.id) {
-                const dataToSend = {
-                    tg_user_id: tgWebApp.initDataUnsafe.user.id,
-                    items: simplifiedItems
-                };
+            const dataToSend = {
+                tg_user_id: userId,
+                init_data: initData, 
+                items: simplifiedItems
+            };
 
-                if (tgWebApp.MainButton) {
-                    tgWebApp.MainButton.setText('Отправка...');
-                    tgWebApp.MainButton.disable();
-                }
+            console.log("DEBUG: Payload constructed with init_data.");
+            
+            const apiUrl = `${API_BASE_URL}/api/web-app/send-cart`;
+            console.log("DEBUG: Target URL:", apiUrl);
+            
+            const initialText = tgWebApp.MainButton ? tgWebApp.MainButton.text : 'Перенести в корзину Бота';
 
-                closeCartModal();
-                tgWebApp.sendData(JSON.stringify(dataToSend));
+            if (tgWebApp.MainButton) {
+                tgWebApp.MainButton.setText('Отправка...');
+                tgWebApp.MainButton.disable();
+            }
+            
+            closeCartModal();
 
-                webAppCart = {};
-                updateCartUI();
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(dataToSend)
+                });
 
-            } else {
-                const dataToSend = {
-                    tg_user_id: 123456789,
-                    items: simplifiedItems
-                };
+                console.log("DEBUG: Fetch attempt finished. Response status:", response.status);
 
-                try {
-                    const response = await fetch(`${API_BASE_URL}/api/web-app/send-cart`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(dataToSend)
-                    });
-
-                    if (response.ok) {
-                        webAppCart = {};
-                        updateCartUI();
+                if (response.ok) {
+                    const result = await response.json();
+                    
+                    webAppCart = {};
+                    updateCartUI();
+                    
+                    if (tgWebApp) {
+                        tgWebApp.showAlert(`✅ Заказ ID ${result.order_id || 'N/A'} отправлен! Менеджер свяжется с вами.`, 
+                            () => tgWebApp.close());
+                    } else {
+                         console.log('DEBUG: Order successfully sent (Standalone mode).', result);
                     }
-                } catch (error) {
-                    console.error('Ошибка отправки:', error);
+                } else {
+                    const errorDetails = await response.json().catch(() => ({ detail: response.statusText }));
+                    const errorMessage = `Ошибка сервера: ${errorDetails.detail || 'Неизвестная ошибка'}. Статус: ${response.status}`;
+                    console.error('DEBUG: Server responded with error:', errorMessage);
+                    if (tgWebApp) tgWebApp.showAlert(errorMessage);
+                }
+            } catch (error) {
+                console.error('DEBUG: Network or fetch error caught:', error.message);
+                if (tgWebApp) tgWebApp.showAlert(`Ошибка сети. Проверьте подключение и URL. Подробности в консоли.`);
+            } finally {
+                if (tgWebApp.MainButton) {
+                    tgWebApp.MainButton.setText(initialText);
+                    tgWebApp.MainButton.enable();
                 }
             }
         }

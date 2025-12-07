@@ -45,6 +45,7 @@ class CartItem(BaseModel):
 
 class CartPayload(BaseModel):
     tg_user_id: int
+    init_data: str
     items: List[CartItem]
 
 
