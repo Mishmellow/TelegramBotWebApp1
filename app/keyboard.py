@@ -1,6 +1,9 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo
 from aiogram.filters.callback_data import CallbackData
 from typing import Optional
+import logging
+
+logger = logging.getLogger(__name__)
 
 PRODUCTS = {
     201: {'name': 'Razer DeathAdder V3', 'type': 'Мышь', 'price': 8990},
@@ -21,6 +24,9 @@ def get_client_url():
 
 
 def inline_category_keyboard() -> InlineKeyboardMarkup:
+
+    logger.info("DEBUG: Generating full inline category keyboard (3 rows).")
+
     keyboard = [
         [
             InlineKeyboardButton(text="🕹️ Перейти в Каталог", callback_data='buy_button'),
