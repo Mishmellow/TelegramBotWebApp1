@@ -1,10 +1,13 @@
 import logging
 import asyncio
 from aiogram import Bot, Dispatcher, Router, F
-from aiogram.types import Message, WebAppInfo, InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.types import Message
 from aiogram.fsm.state import State, StatesGroup
 
-from settings import WEBAPP_URL, BOT_TOKEN, MANAGER_CHAT_ID
+from app.keyboard import inline_category_keyboard
+from app.menu_handlers import router as menu_router
+
+from settings import BOT_TOKEN, MANAGER_CHAT_ID
 from api_service import set_bot_instance
 from admin import admin_router
 
@@ -20,15 +23,11 @@ class UserForm(StatesGroup):
 @router.message(F.text == "/start")
 async def command_start_handler(message: Message) -> None:
 
-    web_app_url = WEBAPP_URL
-
-    web_app_info = WebAppInfo(url=web_app_url)
-
-    keyboard = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="🚀 Перейти в Web App", web_app=web_app_info)]
-    ])
-
-    await message.answer("Добро пожаловать! Нажмите кнопку ниже, чтобы открыть наше Web App:", reply_markup=keyboard)
+    await message.answer(
+        "👋 Добро пожаловать! Нажмите кнопку ниже, чтобы открыть наше Web App, "
+        "или выберите пункт меню.",
+        reply_markup=inline_category_keyboard()
+    )
 
 
 def initiate_bot() -> tuple[Bot, Dispatcher]:
@@ -36,6 +35,7 @@ def initiate_bot() -> tuple[Bot, Dispatcher]:
     dp = Dispatcher()
 
     dp.include_router(router)
+    dp.include_router(menu_router)
     dp.include_router(admin_router)
 
     set_bot_instance(bot, MANAGER_CHAT_ID)
