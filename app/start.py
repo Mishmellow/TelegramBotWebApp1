@@ -1,10 +1,10 @@
 import logging
 import asyncio
 from aiogram import Bot, Dispatcher, Router, F
-from aiogram.types import Message, WebAppInfo, InlineKeyboardButton
+from aiogram.types import Message
 from aiogram.fsm.state import State, StatesGroup
 
-from settings import WEBAPP_URL, BOT_TOKEN, MANAGER_CHAT_ID
+from settings import BOT_TOKEN, MANAGER_CHAT_ID
 from api_service import set_bot_instance
 from admin import admin_router
 from app.order_handlers import router as client_router
@@ -25,11 +25,6 @@ async def command_start_handler(message: Message) -> None:
 
     keyboard = inline_category_keyboard()
 
-    web_app_url = WEBAPP_URL
-    web_app_info = WebAppInfo(url=web_app_url)
-    web_app_button = InlineKeyboardButton(text="🚀 Перейти в Web App", web_app=web_app_info)
-
-    keyboard.inline_keyboard.append([web_app_button])
 
     await message.answer(
         "👋 Добро пожаловать! Выберите интересующий раздел:",
