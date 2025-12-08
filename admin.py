@@ -1,10 +1,13 @@
 from aiogram import Router, types, F, Bot
 from aiogram.types import CallbackQuery
-from api_service import PENDING_ORDERS, MANAGER_CHAT_ID 
+from api_service import PENDING_ORDERS
+from settings import MANAGER_CHAT_ID
 from typing import Literal
+import logging
+
+logger = logging.getLogger(__name__)
 
 admin_router = Router()
-
 
 @admin_router.message(F.text == "/admin")
 async def handle_admin_check(message: types.Message):
@@ -19,19 +22,21 @@ async def handle_admin_check(message: types.Message):
 
 
 async def process_order_action(
-    callback: CallbackQuery, 
+    callback: CallbackQuery,
     action: Literal['confirm', 'cancel'],
     bot: Bot
 ):
+
     try:
         order_id = callback.data.split('_')[-1]
     except IndexError:
+        logger.error(f"Неверный формат колбэка: {callback.data}")
         await callback.answer("Ошибка данных колбэка.")
         return
 
     if order_id not in PENDING_ORDERS:
         await callback.answer(
-            f"Заказ ID {order_id} уже обработан или не существует.", 
+            f"Заказ ID {order_id} уже обработан или не существует.",
             show_alert=True
         )
 
@@ -41,13 +46,13 @@ async def process_order_action(
                 parse_mode='Markdown'
             )
         except Exception:
-            pass 
+            pass
         return
 
     order_data = PENDING_ORDERS.pop(order_id)
     user_id = order_data['user_id']
     total_cost = order_data['total']
-    
+
     if action == 'confirm':
         status_text = "✅ ПОДТВЕРЖДЕН"
         manager_message_suffix = "\n\n✅ *Заказ подтвержден.* Свяжитесь с клиентом для уточнения деталей."
@@ -72,28 +77,26 @@ async def process_order_action(
             parse_mode='Markdown'
         )
     except Exception as e:
-        print(f"🛑 ОШИБКА: Не удалось отправить уведомление пользователю {user_id}. {e}")
+        logger.error(f"🛑 ОШИБКА: Не удалось отправить уведомление пользователю {user_id}. {e}")
 
     try:
         new_manager_text = callback.message.text.split("--- Состав заказа ---")[0] + manager_message_suffix
-        
+
         await callback.message.edit_text(
             new_manager_text,
             parse_mode='Markdown',
-            reply_markup=None 
+            reply_markup=None
         )
     except Exception as e:
-        print(f"🛑 ОШИБКА редактирования сообщения менеджеру: {e}")
-        
+        logger.error(f"🛑 ОШИБКА редактирования сообщения менеджеру: {e}")
+
     await callback.answer(f"Заказ ID {order_id} {status_text}!", show_alert=False)
 
 
 @admin_router.callback_query(F.data.startswith('order_confirm_'))
 async def handle_confirm_callback(callback: CallbackQuery, bot: Bot):
-    """Обрабатывает нажатие кнопки 'Подтвердить'."""
     await process_order_action(callback, 'confirm', bot)
 
 @admin_router.callback_query(F.data.startswith('order_cancel_'))
 async def handle_cancel_callback(callback: CallbackQuery, bot: Bot):
-    """Обрабатывает нажатие кнопки 'Отменить'."""
     await process_order_action(callback, 'cancel', bot)
