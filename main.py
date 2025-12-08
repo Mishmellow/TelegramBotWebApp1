@@ -2,7 +2,7 @@ import asyncio
 import logging
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import CommandStart
-from settings import BOT_TOKEN, WEBHOOK_HOST, WEBHOOK_SECRET, MANAGER_CHAT_ID
+from settings import BOT_TOKEN, WEBHOOK_HOST, MANAGER_CHAT_ID
 from api_service import set_bot_instance 
 from admin import admin_router 
 

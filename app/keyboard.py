@@ -29,7 +29,7 @@ def inline_category_keyboard() -> InlineKeyboardMarkup:
 
     keyboard = [
         [
-            InlineKeyboardButton(text="🕹️ Перейти в Каталог", callback_data='buy_button'),
+            InlineKeyboardButton(text="🕹️ Перейти в Каталог", callback_data='show_catalog'),
         ],
         [
             InlineKeyboardButton(text="ℹ️ О нас", callback_data='about_button'),
@@ -38,6 +38,13 @@ def inline_category_keyboard() -> InlineKeyboardMarkup:
         [
             InlineKeyboardButton(text="🛍️ Открыть Магазин", web_app=WebAppInfo(url=get_client_url())),
         ]
+    ]
+    return InlineKeyboardMarkup(inline_keyboard=keyboard)
+
+
+def back_to_main_keyboard() -> InlineKeyboardMarkup:
+    keyboard = [
+        [InlineKeyboardButton(text="⬅️ Назад в меню", callback_data="back_to_main")],
     ]
     return InlineKeyboardMarkup(inline_keyboard=keyboard)
 
