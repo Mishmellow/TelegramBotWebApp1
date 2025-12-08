@@ -37,7 +37,7 @@ async def process_order_action(
 
         try:
             await callback.message.edit_text(
-                f"{callback.message.text}\n\n*🛑 Заказ был обработан ранее.*",
+                f"{callback.message.text}\n\n🛑 Заказ был обработан ранее.",
                 parse_mode='Markdown'
             )
         except Exception:

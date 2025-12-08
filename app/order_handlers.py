@@ -24,6 +24,7 @@ PAYMENT_DETAILS_TEXT = (
 )
 
 
+
 @router.callback_query(F.data == 'buy_button')
 async def start_order(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
@@ -191,6 +192,7 @@ async def delete_item_from_cart(callback: CallbackQuery, state: FSMContext):
         await callback.answer('Ошибка: Товар уже удален или не существует.', show_alert=True)
 
 
+
 @router.callback_query(F.data == 'checkout')
 async def start_checkout(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
@@ -347,67 +349,6 @@ async def process_receipt_photo(message: Message, state: FSMContext, bot: Bot):
                 ~F.text.startswith('/'))
 async def process_receipt_text_error(message: Message):
     await message.answer("Пожалуйста, прикрепите <b>фотографию</b> или <b>скриншот</b> квитанции об оплате.", parse_mode='HTML')
-
-
-@router.callback_query(F.data.startswith('approve_'))
-async def admin_approve_order(callback: CallbackQuery, bot: Bot):
-    await callback.answer("Заказ активирован.")
-
-    try:
-        client_id = int(callback.data.split('_')[-1])
-
-        admin_username = callback.from_user.username if callback.from_user.username else 'Админ'
-
-        await bot.send_message(
-            chat_id=client_id,
-            text="✅ <b>Ваш заказ успешно активирован!</b>\n"
-                 "Спасибо за покупку. Менеджер свяжется с вами для уточнения деталей доставки.",
-            parse_mode='HTML'
-        )
-
-        await callback.message.edit_caption(
-            caption=f"{callback.message.caption}\n\n"
-                    f"🟢 <b>АКТИВИРОВАНО</b> менеджером: @{admin_username}",
-            reply_markup=None,
-            parse_mode='HTML'
-        )
-
-    except Exception as e:
-        logger.error(f"Ошибка активации заказа для клиента {client_id}: {e}")
-        await bot.send_message(
-            chat_id=MANAGER_CHAT_ID,
-            text=f"❌ Ошибка активации заказа ID {client_id}: {e}"
-        )
-
-
-@router.callback_query(F.data.startswith('reject_'))
-async def admin_reject_order(callback: CallbackQuery, bot: Bot):
-    await callback.answer("Заказ отклонен.")
-
-    try:
-        client_id = int(callback.data.split('_')[-1])
-        admin_username = callback.from_user.username if callback.from_user.username else 'Админ'
-
-        await bot.send_message(
-            chat_id=client_id,
-            text="❌ <b>Ошибка оплаты.</b>\n"
-                 "Ваша квитанция не подтверждена. Пожалуйста, убедитесь, что вы оплатили полную сумму и прислали правильный скриншот. Начните заново командой /start.",
-            parse_mode='HTML'
-        )
-
-        await callback.message.edit_caption(
-            caption=f"{callback.message.caption}\n\n"
-                    f"🔴 <b>ОТКЛОНЕНО</b> менеджером: @{admin_username}",
-            reply_markup=None,
-            parse_mode='HTML'
-        )
-
-    except Exception as e:
-        logger.error(f"Ошибка отклонения заказа для клиента {client_id}: {e}")
-        await bot.send_message(
-            chat_id=MANAGER_CHAT_ID,
-            text=f"❌ Ошибка отклонения заказа ID {client_id}: {e}"
-        )
 
 
 @router.callback_query(F.data == 'cancel_order', OrderStates.waiting_for_name)
