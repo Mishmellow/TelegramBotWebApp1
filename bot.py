@@ -4,7 +4,6 @@ import sys
 
 from aiogram import Bot, Dispatcher, Router, types
 from aiogram.enums import ParseMode
-from aiogram.filters import CommandStart
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.types.web_app_info import WebAppInfo
 from aiogram.client.default import DefaultBotProperties
@@ -31,23 +30,6 @@ def get_web_app_keyboard() -> types.InlineKeyboardMarkup:
     )
 
     return builder.as_markup()
-
-
-@main_router.message(CommandStart())
-async def start_handler(message: types.Message):
-    """Обработчик команды /start."""
-    markup = get_web_app_keyboard()
-
-    welcome_text = (
-        "Привет! 👋\n"
-        "Добро пожаловать в каталог игрового оборудования Periphery.\n\n"
-        "Нажми кнопку ниже, чтобы открыть наше Web App и выбрать товары."
-    )
-
-    await message.answer(
-        text=welcome_text,
-        reply_markup=markup
-    )
 
 
 def initiate_bot() -> tuple[Bot, Dispatcher]:

@@ -18,8 +18,6 @@ logger = logging.getLogger(__name__)
 
 
 def initiate_bot() -> tuple[Bot, Dispatcher]:
-    """
-    """
     if not BOT_TOKEN:
         logger.error("🛑 ОШИБКА: Токен BOT_TOKEN не найден. Проверьте .env файл.")
         raise ValueError("BOT_TOKEN is not set.")
