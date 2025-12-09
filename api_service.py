@@ -309,7 +309,6 @@ async def delete_product(product_id: int):
     return
 
 def create_manager_keyboard(order_id: str) -> InlineKeyboardMarkup:
-    """Создает инлайн-клавиатуру для менеджера для управления заказом."""
     return InlineKeyboardMarkup(inline_keyboard=[
         [
             InlineKeyboardButton(

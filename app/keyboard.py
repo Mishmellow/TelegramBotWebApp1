@@ -2,6 +2,7 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo
 from aiogram.filters.callback_data import CallbackData
 from typing import Optional
 import logging
+from settings import WEBAPP_URL
 
 logger = logging.getLogger(__name__)
 
@@ -19,10 +20,6 @@ class PeripheryCallback(CallbackData, prefix='periph'):
     item_id: Optional[int] = None
 
 
-def get_client_url():
-    return "https://telegrambotwebapp1-production.up.railway.app/webapp/index.html"
-
-
 def inline_category_keyboard() -> InlineKeyboardMarkup:
 
     logger.info("DEBUG: Generating full inline category keyboard (3 rows).")
@@ -36,7 +33,7 @@ def inline_category_keyboard() -> InlineKeyboardMarkup:
             InlineKeyboardButton(text="📞 Контакты", callback_data='contacts_button'),
         ],
         [
-            InlineKeyboardButton(text="🛍️ Открыть Магазин", web_app=WebAppInfo(url=get_client_url())),
+            InlineKeyboardButton(text="🛍️ Открыть Магазин", web_app=WebAppInfo(url=WEBAPP_URL)),
         ]
     ]
     return InlineKeyboardMarkup(inline_keyboard=keyboard)

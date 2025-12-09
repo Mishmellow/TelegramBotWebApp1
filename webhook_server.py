@@ -1,74 +1,106 @@
-import asyncio
 import logging
-from aiogram import Bot, Dispatcher, types
+from fastapi import FastAPI, Request, Response, HTTPException
+from fastapi.staticfiles import StaticFiles
+from aiogram import Bot, Dispatcher
 from aiogram.enums import ParseMode
-from aiogram.filters import CommandStart
-from aiogram.utils.keyboard import InlineKeyboardBuilder
-from aiogram.types.web_app_info import WebAppInfo
 from aiogram.client.default import DefaultBotProperties
+from aiogram.exceptions import TelegramBadRequest
 
-from settings import BOT_TOKEN, WEBHOOK_HOST, MANAGER_CHAT_ID
+from settings import BOT_TOKEN, WEBHOOK_PATH, WEBHOOK_URL, WEBHOOK_SECRET, MANAGER_CHAT_ID, WEBHOOK_HOST
 from api_service import set_bot_instance
+
+
 from admin import admin_router
+from api_service import APIRouter
+
+from app.start import router as start_router
+from app.menu_handlers import router as menu_router
+from app.order_handlers import router as order_router
+
+logger = logging.getLogger(__name__)
+
+app = FastAPI(title="Telegram Web App & Bot Webhook Server")
+
+bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
+dp = Dispatcher()
+
+set_bot_instance(bot, MANAGER_CHAT_ID)
+
+dp.include_router(start_router)
+dp.include_router(menu_router)
+dp.include_router(order_router)
+dp.include_router(admin_router)
+
+app.include_router(APIRouter)
 
 
-WEB_APP_URL = f"{WEBHOOK_HOST}/webapp/index.html"
-logging.basicConfig(level=logging.INFO)
+@app.post(WEBHOOK_PATH)
+async def bot_webhook(request: Request):
 
+    if request.headers.get("X-Telegram-Bot-Api-Secret-Token") != WEBHOOK_SECRET:
+        logger.warning("Получен запрос с неверным секретным токеном.")
+        raise HTTPException(status_code=403, detail="Forbidden")
 
-def get_web_app_keyboard() -> types.InlineKeyboardMarkup:
-    builder = InlineKeyboardBuilder()
-
-    web_app_info = WebAppInfo(url=WEB_APP_URL)
-
-    builder.button(
-        text="🛍️ Перейти в Каталог Periphery",
-        web_app=web_app_info
-    )
-
-    return builder.as_markup()
-
-
-async def start_handler(message: types.Message):
-    markup = get_web_app_keyboard()
-
-    welcome_text = (
-        "Привет! 👋\n"
-        "Добро пожаловать в каталог игрового оборудования Periphery.\n\n"
-        "Нажми кнопку ниже, чтобы открыть наше Web App и выбрать товары."
-    )
-
-    await message.answer(
-        text=welcome_text,
-        reply_markup=markup
-    )
-
-
-async def main():
-    if not BOT_TOKEN:
-        print("🛑 ОШИБКА: Токен BOT_TOKEN не найден в переменных окружения. Проверьте файл .env.")
-        return
-
-    if not MANAGER_CHAT_ID:
-        print("🛑 ОШИБКА: ID менеджера MANAGER_CHAT_ID не установлен. Проверьте файл .env.")
-        return
-
-    bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
-    dp = Dispatcher()
-
-    set_bot_instance(bot, MANAGER_CHAT_ID)
-    dp.include_router(admin_router)
-
-    dp.message.register(start_handler, CommandStart())
-
-    await bot.delete_webhook(drop_pending_updates=True)
-
-    print("🚀 Бот запущен! Ищи его в Telegram...")
     try:
-        await dp.start_polling(bot)
-    finally:
-        await bot.session.close()
+        update_json = await request.json()
+    except Exception as e:
+        logger.error(f"Не удалось распарсить JSON из Webhook: {e}")
+        return Response(status_code=200)
+
+    try:
+        await dp.feed_raw_update(bot, update_json)
+    except TelegramBadRequest as e:
+        logger.error(f"Ошибка Telegram BadRequest при обработке Update: {e}")
+    except Exception as e:
+        logger.error(f"Критическая ошибка при обработке Update: {e}", exc_info=True)
+
+    return Response(status_code=200)
 
 
-if __name__ == "__main__":
-    asyncio.run(main())
+STATIC_FILES_DIR = "webapp_static_files"
+app.mount(
+    "/webapp",
+    StaticFiles(directory=STATIC_FILES_DIR, html=True),
+    name="webapp_static"
+)
+
+
+@app.on_event("startup")
+async def on_startup():
+    if not BOT_TOKEN or not WEBHOOK_HOST:
+        logger.error("🛑 Критические переменные BOT_TOKEN или WEBHOOK_HOST не установлены.")
+        raise ValueError("BOT_TOKEN или WEBHOOK_HOST не установлены.")
+
+    logger.info(f"Установка Webhook по URL: {WEBHOOK_URL}")
+
+    try:
+        webhook_success = await bot.set_webhook(
+            url=WEBHOOK_URL,
+            secret_token=WEBHOOK_SECRET,
+            drop_pending_updates=True
+        )
+        if webhook_success:
+            logger.info("✅ Webhook успешно установлен.")
+        else:
+            logger.error("🛑 Не удалось установить Webhook.")
+    except Exception as e:
+        logger.error(f"Ошибка при установке Webhook: {e}")
+
+
+@app.on_event("shutdown")
+async def on_shutdown():
+    logger.info("Удаление Webhook...")
+    await bot.delete_webhook()
+    await bot.session.close()
+    logger.info("Сессия бота закрыта. Сервер остановлен.")
+
+
+@app.get("/")
+async def root_status():
+    webhook_info = await bot.get_webhook_info()
+    return {
+        "status": "running",
+        "bot_id": bot.id,
+        "webhook_url_set": webhook_info.url,
+        "pending_updates": webhook_info.pending_update_count
+    }

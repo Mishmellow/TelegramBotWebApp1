@@ -24,7 +24,6 @@ PAYMENT_DETAILS_TEXT = (
 )
 
 
-
 @router.callback_query(F.data == 'buy_button')
 async def start_order(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
@@ -138,7 +137,7 @@ async def view_cart(callback: CallbackQuery, state: FSMContext):
 
     await callback.message.edit_text(
         cart_summary,
-        reply_markup=get_cart_keyboard(cart_items=cart),
+        reply_markup=await get_cart_keyboard(cart_items=cart), # Обновлено
         parse_mode='Markdown'
     )
 
@@ -184,7 +183,7 @@ async def delete_item_from_cart(callback: CallbackQuery, state: FSMContext):
 
         await callback.message.edit_text(
             cart_summary,
-            reply_markup=get_cart_keyboard(cart_items=cart),
+            reply_markup=await get_cart_keyboard(cart_items=cart), # Обновлено
             parse_mode='Markdown'
         )
 
@@ -192,8 +191,7 @@ async def delete_item_from_cart(callback: CallbackQuery, state: FSMContext):
         await callback.answer('Ошибка: Товар уже удален или не существует.', show_alert=True)
 
 
-
-@router.callback_query(F.data == 'checkout')
+@router.callback_query(F.data == 'start_checkout')
 async def start_checkout(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
 
@@ -224,9 +222,7 @@ async def start_checkout(callback: CallbackQuery, state: FSMContext):
 
 @router.message(OrderStates.waiting_for_name, F.text, ~F.text.startswith('/'))
 async def proces_name(message: Message, state: FSMContext):
-    current_state = await state.get_state()
-    logger.info(
-        f"proces_name called for user {message.from_user.id}. Current state: {current_state}. Text: '{message.text}'")
+    logger.info(f"proces_name called for user {message.from_user.id}. Text: '{message.text}'")
 
     name = message.text
     await state.update_data(name=name)
@@ -241,9 +237,7 @@ async def proces_name(message: Message, state: FSMContext):
 
 @router.message(OrderStates.waiting_for_address, F.text, ~F.text.startswith('/'))
 async def address_process(message: Message, state: FSMContext, bot: Bot):
-    current_state = await state.get_state()
-    logger.info(
-        f"address_process called for user {message.from_user.id}. Current state: {current_state}. Text: '{message.text}'")
+    logger.info(f"address_process called for user {message.from_user.id}. Text: '{message.text}'")
 
     await state.update_data(address=message.text)
     data = await state.get_data()
@@ -277,6 +271,7 @@ async def address_process(message: Message, state: FSMContext, bot: Bot):
         )
     except Exception as e:
         logger.error(f'Критическая ошибка при отправке менеджеру: {e}')
+        # Отправка резервного сообщения в случае ошибки
         await bot.send_message(
             chat_id=MANAGER_CHAT_ID,
             text=f"Критическая ошибка при отправке заказа от пользователя {message.from_user.id}: {e}"
@@ -351,13 +346,13 @@ async def process_receipt_text_error(message: Message):
     await message.answer("Пожалуйста, прикрепите <b>фотографию</b> или <b>скриншот</b> квитанции об оплате.", parse_mode='HTML')
 
 
-@router.callback_query(F.data == 'cancel_order', OrderStates.waiting_for_name)
-@router.callback_query(F.data == 'cancel_order', OrderStates.waiting_for_address)
-@router.callback_query(F.data == 'cancel_order', OrderStates.waiting_for_receipt)
+@router.callback_query(F.data == 'cancel_order')
 async def cancel_order(callback: CallbackQuery, state: FSMContext):
-    logger.info(f"User {callback.from_user.id} cancelled order from state {await state.get_state()}")
+    current_state = await state.get_state()
+    logger.info(f"User {callback.from_user.id} cancelled order from state {current_state}")
 
-    await state.clear()
+    if current_state:
+        await state.clear()
 
     menu = inline_category_keyboard()
 

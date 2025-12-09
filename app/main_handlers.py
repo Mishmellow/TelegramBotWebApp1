@@ -31,16 +31,6 @@ def get_combined_start_keyboard() -> InlineKeyboardMarkup:
 
     return builder.as_markup()
 
-
-@router.message(CommandStart())
-async def command_start_handler(message: Message) -> None:
-    keyboard = get_combined_start_keyboard()
-
-    await message.answer(
-        f"Привет, {message.from_user.full_name}! Добро пожаловать! Выберите раздел:",
-        reply_markup=keyboard
-    )
-
 @router.callback_query(F.data == 'about_us')
 async def handle_about_us(callback: CallbackQuery):
     await callback.answer()
