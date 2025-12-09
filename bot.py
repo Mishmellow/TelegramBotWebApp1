@@ -10,7 +10,7 @@ from aiogram.client.default import DefaultBotProperties
 
 from settings import BOT_TOKEN, MANAGER_CHAT_ID, WEBAPP_URL
 from api_service import set_bot_instance
-
+from app.start import start_router
 from admin import admin_router
 
 main_router = Router()
@@ -46,6 +46,7 @@ def initiate_bot() -> tuple[Bot, Dispatcher]:
 
     set_bot_instance(bot, MANAGER_CHAT_ID)
 
+    dp.include_router(start_router)
     dp.include_router(admin_router)
     dp.include_router(main_router)
 
