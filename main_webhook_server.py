@@ -51,7 +51,3 @@ async def shutdown_event():
             logging.warning("⚠️ Задача бота не завершилась вовремя.")
         except asyncio.CancelledError:
             pass
-
-
-if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
