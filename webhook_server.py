@@ -13,7 +13,7 @@ from api_service import set_bot_instance
 from admin import admin_router
 from api_service import APIRouter
 
-from app.start import router as start_router
+from app.start import start_router
 from app.menu_handlers import router as menu_router
 from app.order_handlers import router as order_router
 

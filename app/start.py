@@ -1,17 +1,16 @@
 import logging
-from aiogram import Router, F
+from aiogram import Router
 from aiogram.types import Message, WebAppInfo, InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.filters import CommandStart
 
 from settings import WEBAPP_URL
 
 logger = logging.getLogger(__name__)
 
-router = Router()
+start_router = Router()
 
-
-@router.message(F.text == "/start")
-async def command_start_handler(message: Message) -> None:
-
+@start_router.message(CommandStart())
+async def start_handler(message: Message) -> None:
     web_app_url = WEBAPP_URL
 
     web_app_info = WebAppInfo(url=web_app_url)
