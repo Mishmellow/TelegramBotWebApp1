@@ -21,6 +21,7 @@ class PeripheryCallback(CallbackData, prefix='periph'):
 
 
 def inline_category_keyboard() -> InlineKeyboardMarkup:
+    logger.info("DEBUG: Generating full inline category keyboard (3 rows).")
 
     web_app_button = InlineKeyboardButton(
         text="🛍️ Сделать Заказ",
@@ -34,26 +35,7 @@ def inline_category_keyboard() -> InlineKeyboardMarkup:
         [web_app_button],
         [contacts_button, about_button]
     ])
-    return keyboard
-
-#
-# def inline_category_keyboard() -> InlineKeyboardMarkup:
-#
-#     logger.info("DEBUG: Generating full inline category keyboard (3 rows).")
-#
-#     keyboard = [
-#         [
-#             InlineKeyboardButton(text="🕹️ Перейти в Каталог", callback_data='show_catalog'),
-#         ],
-#         [
-#             InlineKeyboardButton(text="ℹ️ О нас", callback_data='about_button'),
-#             InlineKeyboardButton(text="📞 Контакты", callback_data='contacts_button'),
-#         ],
-#         [
-#             InlineKeyboardButton(text="🛍️ Открыть Магазин", web_app=WebAppInfo(url=WEBAPP_URL)),
-#         ]
-#     ]
-#     return InlineKeyboardMarkup(inline_keyboard=keyboard)
+    return InlineKeyboardMarkup(inline_keyboard=keyboard)
 
 
 def back_to_main_keyboard() -> InlineKeyboardMarkup:
