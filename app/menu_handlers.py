@@ -16,23 +16,18 @@ router = Router()
 
 @router.callback_query(F.data == 'about_button')
 async def handle_about_us(callback: CallbackQuery):
-    await callback.answer()
-
-    back_keyboard = None
 
     await callback.message.edit_text(
         'ℹ️ Мы - команда Periphery, создающая лучшие решения для игрового оборудования и стриминга. '
         'Наши принципы: качество, надежность и отличная поддержка 24/7.\n\n'
         'Выберите, чтобы вернуться в главное меню.',
-        reply_markup=back_keyboard
+        reply_markup=inline_category_keyboard
     )
+    await callback.answer()
 
 
 @router.callback_query(F.data == 'contacts_button')
 async def handle_contacts(callback: CallbackQuery):
-    await callback.answer()
-
-    back_keyboard = None
 
     await callback.message.edit_text(
         '📞 Свяжитесь с нами:\n'
@@ -40,8 +35,9 @@ async def handle_contacts(callback: CallbackQuery):
         '• Почта: support@periphery.com\n'
         '• Адрес: Онлайн-склад в Киеве\n\n'
         'Выберите, чтобы вернуться в главное меню.',
-        reply_markup=back_keyboard
+        reply_markup=inline_category_keyboard
     )
+    await callback.answer()
 
 
 @router.callback_query()
