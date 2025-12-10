@@ -1,12 +1,10 @@
 import logging
-from aiogram import Router, F
-from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo
-from aiogram.filters import CommandStart, StateFilter, Command
-from aiogram.exceptions import TelegramBadRequest
+from aiogram import Router
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from settings import WEBHOOK_HOST
-from app.keyboard import inline_category_keyboard, back_to_main_keyboard
+from app.keyboard import inline_category_keyboard
 
 logger = logging.getLogger(__name__)
 

@@ -7,7 +7,6 @@ import logging
 
 from app.keyboard import (
     inline_category_keyboard,
-    back_to_main_keyboard
 )
 
 logger = logging.getLogger(__name__)
@@ -45,25 +44,37 @@ async def handle_contacts(callback: CallbackQuery):
     )
 
 
-@router.callback_query(F.data == 'back_to_main')
-async def back_to_main_menu(callback: CallbackQuery):
-    await callback.answer('Возврат в главное меню.')
+@router.callback_query()
+async def catch_all_callback_data(callback: CallbackQuery):
+    print("--- 🔴 DEBUG: CALLBACK DATA NOT HANDLED ---")
+    print(f"Update ID: {callback.update_id}")
+    print(f"Data received: '{callback.data}'")
 
-    main_menu_text = (
-        '👋 Вы вернулись в главное меню.\n'
-        'Чтобы открыть каталог товаров, нажмите кнопку "🛍️ Перейти в Магазин".'
+    await callback.answer(
+        text=f"Ошибка: Неизвестная команда. Получено: '{callback.data}'",
+        show_alert=False
     )
 
-    try:
-        await callback.message.edit_text(
-            main_menu_text,
-            reply_markup=inline_category_keyboard()
-        )
-    except TelegramBadRequest:
-        await callback.message.answer(
-            main_menu_text,
-            reply_markup=inline_category_keyboard()
-        )
+
+# @router.callback_query(F.data == 'back_to_main')
+# async def back_to_main_menu(callback: CallbackQuery):
+#     await callback.answer('Возврат в главное меню.')
+#
+#     main_menu_text = (
+#         '👋 Вы вернулись в главное меню.\n'
+#         'Чтобы открыть каталог товаров, нажмите кнопку "🛍️ Перейти в Магазин".'
+#     )
+#
+#     try:
+#         await callback.message.edit_text(
+#             main_menu_text,
+#             reply_markup=inline_category_keyboard()
+#         )
+#     except TelegramBadRequest:
+#         await callback.message.answer(
+#             main_menu_text,
+#             reply_markup=inline_category_keyboard()
+#         )
 
 
 @router.message(F.text, StateFilter(None), ~Command('start'))

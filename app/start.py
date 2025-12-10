@@ -16,7 +16,7 @@ async def start_handler(message: Message) -> None:
     web_app_info = WebAppInfo(url=web_app_url)
 
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="🛒 Перейти в Каталог", callback_data="catalog_main")],
+        [InlineKeyboardButton(text="🛒 Перейти в Каталог", callback_data="show_catalog")],
         [InlineKeyboardButton(text="🚀 Перейти в Web App", web_app=web_app_info)],
         [InlineKeyboardButton(text="ℹ️ О нас", callback_data="about_button")],
         [InlineKeyboardButton(text="📞 Контакты", callback_data="contacts_button")]
