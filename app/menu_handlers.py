@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 router = Router()
 
 
-@router.callback_query(F.data == 'about_button')
+@router.callback_query(F.data == 'about_us')
 async def handle_about_us(callback: CallbackQuery):
 
     await callback.message.edit_text(
@@ -26,7 +26,7 @@ async def handle_about_us(callback: CallbackQuery):
     await callback.answer()
 
 
-@router.callback_query(F.data == 'contacts_button')
+@router.callback_query(F.data == 'contacts')
 async def handle_contacts(callback: CallbackQuery):
 
     await callback.message.edit_text(
