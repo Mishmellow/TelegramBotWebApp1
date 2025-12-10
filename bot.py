@@ -2,35 +2,19 @@ import asyncio
 import logging
 import sys
 
-from aiogram import Bot, Dispatcher, Router, types
+from aiogram import Bot, Dispatcher, Router
 from aiogram.enums import ParseMode
-from aiogram.utils.keyboard import InlineKeyboardBuilder
-from aiogram.types.web_app_info import WebAppInfo
 from aiogram.client.default import DefaultBotProperties
 
-from settings import BOT_TOKEN, MANAGER_CHAT_ID, WEBAPP_URL
+from settings import BOT_TOKEN, MANAGER_CHAT_ID
 from api_service import set_bot_instance
 from app.start import start_router
 from admin import admin_router
 
-main_router = Router()
-
 logging.basicConfig(level=logging.INFO, stream=sys.stdout)
 logger = logging.getLogger(__name__)
 
-
-def get_web_app_keyboard() -> types.InlineKeyboardMarkup:
-    builder = InlineKeyboardBuilder()
-
-    web_app_info = WebAppInfo(url=WEBAPP_URL)
-
-    builder.button(
-        text="🛍️ Перейти в Каталог Periphery",
-        web_app=web_app_info
-    )
-
-    return builder.as_markup()
-
+main_router = Router()
 
 def initiate_bot() -> tuple[Bot, Dispatcher]:
     if not BOT_TOKEN:
@@ -50,11 +34,11 @@ def initiate_bot() -> tuple[Bot, Dispatcher]:
     dp.include_router(admin_router)
     dp.include_router(main_router)
 
-
     return bot, dp
 
 
 async def main():
+    bot: Bot | None = None
     try:
         bot, dp = initiate_bot()
 
@@ -62,12 +46,13 @@ async def main():
 
         logger.info("🤖 Бот запущен и готов к работе в режиме Polling...")
         await dp.start_polling(bot)
+
     except ValueError as e:
         logger.critical(f"🛑 Критическая ошибка инициализации: {e}")
     except Exception as e:
         logger.critical(f"🛑 Критическая ошибка при запуске бота: {e}")
     finally:
-        if 'bot' in locals() and bot is not None:
+        if bot is not None:
             await bot.session.close()
             logger.info("Сессия бота закрыта.")
 
