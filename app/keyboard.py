@@ -35,7 +35,7 @@ def inline_category_keyboard() -> InlineKeyboardMarkup:
         [web_app_button],
         [contacts_button, about_button]
     ])
-    return InlineKeyboardMarkup(inline_keyboard=keyboard)
+    return keyboard
 
 
 def back_to_main_keyboard() -> InlineKeyboardMarkup:
