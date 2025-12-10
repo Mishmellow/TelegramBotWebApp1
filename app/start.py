@@ -17,8 +17,8 @@ async def start_handler(message: Message) -> None:
 
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="🚀 Перейти в Web App", web_app=web_app_info)],
-        [InlineKeyboardButton(text="ℹ️ О нас", callback_data="about_button")],
-        [InlineKeyboardButton(text="📞 Контакты", callback_data="contacts_button")]
+        [InlineKeyboardButton(text="ℹ️ О нас", callback_data="about_us")],
+        [InlineKeyboardButton(text="📞 Контакты", callback_data="contacts")]
     ])
 
     await message.answer("Добро пожаловать! Выберите интересующий раздел:", reply_markup=keyboard)
