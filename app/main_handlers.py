@@ -30,11 +30,3 @@ def get_combined_start_keyboard() -> InlineKeyboardMarkup:
         builder.row(*row)
 
     return builder.as_markup()
-
-@router.callback_query(F.data == 'about_us')
-async def handle_about_us(callback: CallbackQuery):
-    await callback.answer()
-    await callback.message.edit_text(
-        'ℹ️ Мы - команда Periphery, создающая лучшие решения...',
-        reply_markup=back_to_main_keyboard()
-    )
